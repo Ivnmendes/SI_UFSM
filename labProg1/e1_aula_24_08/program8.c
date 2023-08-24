@@ -10,8 +10,7 @@ int main(int argc, char const *argv[]) {
 
     if(l1<l2+l3 && l2<l1+l3 && l3<l1+l2) {
         sPerimetro = (l1+l2+l3)/2;
-        area = sqrt(sPerimetro*(sPerimetro-l1)*(sPerimetro
-            -l2)*(sPerimetro-l3));
+        area = sqrt(sPerimetro*(sPerimetro-l1)*(sPerimetro-l2)*(sPerimetro-l3));
 
         printf("%.2f\n", area);
     } else {
