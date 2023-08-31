@@ -5,8 +5,7 @@
 
 2. Leia dois valores e um caractere, representando uma operação (soma, subtração, multiplicação e divisão). A seguir, o programa deve realizar a operação solicitada e exibir o resultado. Obs.: na operação de divisão, se o denominador for zero, o programa deve informar que a operação é inválida.
 
-3. Leia o código de um produto e exiba a sua classificação, conforme a
-tabela abaixo:
+3. Leia o código de um produto e exiba a sua classificação, conforme a tabela abaixo:
     Código|Classificação
     :----:|:-----------:
     1|Alimento não perecível
@@ -30,17 +29,16 @@ tabela abaixo:
     5|1,15|Saturno
     6|1,17|Urano
 
-6.Leia o número do mês e informe o número de dias existentes naquele mês, conforme abaixo. Para números de mês inválidos, o programa deve exibir uma mensagem adequada:
+6. Leia o número do mês e informe o número de dias existentes naquele mês, conforme abaixo. Para números de mês inválidos, o programa deve exibir uma mensagem adequada:
     Número de dias|Mês
-    :--:|:---:
+    :---:|:---:
     28|02
     30|04, 06, 09, 11
     31|01, 03, 05, 08, 10, 12
 
-7. Leia um caractere identificador do sexo (“M” para masculino e “F”
- para feminino) e calcule o peso ideal de um usuário, com base nas fórmulas abaixo:
- * Para “M”: (altura – 100) * 0,9
- * Para “F”: (altura – 100) * 0,85
+7. Leia um caractere identificador do sexo (“M” para masculino e “F” para feminino) e calcule o peso ideal de um usuário, com base nas fórmulas abaixo:
+    * Para “M”: (altura – 100) * 0,9
+    * Para “F”: (altura – 100) * 0,85
 
 
 8. Leia o plano de trabalho e o salário atual de um funcionário, calcule e imprima o seu novo salário, com base na tabela abaixo:
