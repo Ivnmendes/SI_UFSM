@@ -68,9 +68,9 @@ No exemplo, o **output** varia de acordo com a opção selecionada, sendo:
 
 **Etapa 2c**: Se o usuário selecionar a opção ‘c’, o programa exibe o título “C > Conversão de temperatura” e lê um valor real do usuário equivalente a uma temperatura em escala Celsius. Após, solicita uma escala para conversão (“Fahrenheit”, “Kelvin” ou “Rankine”), calcula e exibe a temperatura na escala escolhida. Considere as seguinte equivalências, onde ºC é uma temperatura em Celsius, ºF em Fahrenheit, K em Kelvin e ºR na escala Rankine:
 
-- $(°C \dot \frac{9}{5}) + 32 = °F$
+- $(°C \dot \dfrac{9}{5}) + 32 = °F$
 - $(°C + 273.15 = K$
-- $(°C \dot \frac{9}{5}) + 491.67 = °R$
+- $(°C \dot \dfrac{9}{5}) + 491.67 = °R$
 
 ```c
 C > Validacao de data
