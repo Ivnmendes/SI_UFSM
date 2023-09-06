@@ -1,3 +1,5 @@
+# Exercícios aula 31/08
+
  1. Leia um conjunto de 4 valores i, a, b, c, onde i é inteiro e positivo e a, b, c são reais. Escreva os valores lidos e, a seguir:
     * Se i = 1 escrever os valores a, b, c em ordem crescente.
     * Se i = 2 escrever os valores a, b, c em ordem decrescente.
