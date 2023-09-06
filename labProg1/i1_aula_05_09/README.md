@@ -52,7 +52,7 @@
 
 * Entrada: A entrada contém um inteiro que indica os km que a van precisará viajar. Saída: A saída consiste em imprimir o preço de diesel que será gasto.
 
-    * Exemplo:
+    Exemplo:
     Entrada|Saída
     :--:|:--:
     500|R$115,00
