@@ -21,15 +21,7 @@ public class Jogador {
         this.somaMonte = 0;
         this.numVitorias = 0;
         this.pontFinal = 0;
-    }
-
-    public Jogador(String nome) {
-        this.nome = nome;
-        this.mao = new Carta[]{null, null, null, null, null, null, null};
-        this.numCartasVermelhas = 0;
-        this.somaMonte = 0;
-        this.numVitorias = 0;
-        this.pontFinal = 0;
+        ordenarMao();
     }
 
     public String getNome() {
@@ -80,7 +72,7 @@ public class Jogador {
         this.pontFinal = pontFinal;
     }
 
-    public int numCartasMao () {
+    private int numCartasMao () {
         int cont = 0;
         for (Carta carta : mao) {
             if (carta != null) {
@@ -114,11 +106,15 @@ public class Jogador {
         }
     }
 
-    public void comprarCarta(Carta baralho[]) {
+    public int comprarCarta(Carta baralho[]) {
         int numCartasMao = numCartasMao();
         int cartasVermelhasMesa = numCartasVermelhas;
+        int cartasCompradas = 0;
+
+        ordenarMao();
+
         do  {
-            Carta cartaComprada = null;
+            Carta cartaComprada;
             int posCarta;
             do {
                 posCarta = gerador.nextInt(54);
@@ -130,14 +126,19 @@ public class Jogador {
 
             numCartasMao++;
             cartasVermelhasMesa--;
+            cartasCompradas++;
         } while (mao.length < 7 && cartasVermelhasMesa > 0);
+
+        ordenarMao();
+
+        return cartasCompradas;
     }
 
     public Carta jogarCarta(int posCartaEsc) {
         Carta cartaJogada = mao[posCartaEsc];
         mao[posCartaEsc] = null;
         somaMonte += cartaJogada.getValor();
-        if (cartaJogada.getCor().equalsIgnoreCase("vermelho")) {
+        if (cartaJogada.getCor().equalsIgnoreCase("red")) {
             numCartasVermelhas++;
         }
 
