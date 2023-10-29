@@ -36,8 +36,8 @@ public class Jogador {
         return mao;
     }
 
-    public void setMao(Carta[] mao) {
-        this.mao = mao;
+    public void setMao(Carta valor, int pos) {
+        mao[pos] = valor;
     }
 
     public int getNumCartasVermelhas() {
@@ -82,7 +82,23 @@ public class Jogador {
         return cont;
     }
 
-    public void ordenarMao() {
+    public boolean verificarContemCPreta () {
+        for (Carta c : mao) {
+            if (c.getCor().equalsIgnoreCase("b")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean verificarCarta (int x) {
+        if (mao[x].getCor().equalsIgnoreCase("b")) {
+            return true;
+        }
+        return false;
+    }
+
+    public void ordenarMao () {
         int cartas = numCartasMao();
         int numNulos = mao.length - cartas;
         for (int i = 0; i < mao.length - numNulos; i++) {
@@ -147,5 +163,10 @@ public class Jogador {
 
     public void calcPontFinal() {
         pontFinal += somaMonte;
+        pontFinal += numVitorias * 3;
+    }
+
+    public void somarVitoria() {
+        numVitorias++;
     }
 }
