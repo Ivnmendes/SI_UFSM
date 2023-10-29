@@ -1,6 +1,7 @@
 package util;
 
 import entities.Carta;
+import entities.Jogador;
 
 import java.util.Arrays;
 import java.util.Random;
@@ -93,8 +94,16 @@ public class Operacoes {
             baralho[i] = new Carta(nome[i], valores[i], cores[i]);
         }
 
-
         return baralho;
     }
 
+    public int batalhar (Carta ultimaCJogada1, Carta ultimaCJogada2) {
+        if (ultimaCJogada1.getValor() > ultimaCJogada2.getValor()) {
+            return 1;
+        } else if (ultimaCJogada2.getValor() > ultimaCJogada1.getValor() && ultimaCJogada2.getCor().equalsIgnoreCase("b")) {
+            return 2;
+        } else {
+            return 0;
+        }
+    }
 }
