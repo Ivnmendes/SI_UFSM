@@ -2,8 +2,6 @@ package util;
 
 import entities.Carta;
 import entities.Jogador;
-
-import java.util.Arrays;
 import java.util.Random;
 
 public class Operacoes {
@@ -29,8 +27,7 @@ public class Operacoes {
         }
     }
 
-    public Carta[] inicializarBaralho (Carta baralho[]) {
-//        Carta[] baralho = new Carta[54];
+    public Carta[] inicializarBaralho (Carta[] baralho) {
         String nome[] = { "r1", "r1", "r2", "r2", "r3", "r3", "r4", "r5", "r6", "r7", "J", "Q", "K", "A",
                 "1",  "1", "3", "3", "4","4", "5", "5", "7", "C", "J", "Q", "K", "A",
                 "1",  "1", "2", "2", "3", "4", "5", "J", "Q", "K", "A",
