@@ -122,7 +122,7 @@ public class Jogador {
         }
     }
 
-    public int comprarCarta(Carta baralho[]) {
+    public int comprarCarta(Carta[] baralho) {
         int numCartasMao = numCartasMao();
         int cartasVermelhasMesa = numCartasVermelhas;
         int cartasCompradas = 0;

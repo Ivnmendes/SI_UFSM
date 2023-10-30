@@ -53,6 +53,8 @@ public class Program {
         int op, op1, op2;
         int combater;
         int cartasCompradas;
+        Carta aux1;
+        Carta aux2;
 
         while (baralho.length - nulosBaralho >= 0) {
             limparTela();
@@ -79,21 +81,25 @@ public class Program {
 
                     limparTela();
 
+                    aux1 = ultimaCJogada1;
+                    aux2 = ultimaCJogada2;
                     ultimaCJogada1 = j1.getMao()[op1];
                     j1.setMao(null, op1);
                     ultimaCJogada2 = null;
                     exibe.exibirJogo(baralho, j2, j1, nulosBaralho, ultimaCJogada2, ultimaCJogada1);
                     System.out.printf("%s chamou uma batalha\n", j1.getNome());
-                    System.out.print("Escolha uma carta preta para jogar (de 1 a 7): ");
+                    System.out.print("Escolha uma carta para jogar (de 1 a 7): ");
                     op2 = sc.nextInt() - 1;
                     while (op2 < 0 || op2 > 6) {
-                        System.out.println("Valor incorreto ou carta de cor incorreta");
+                        System.out.println("Valor incorreto");
                         System.out.print("\nEscolha uma carta para jogar (de 1 a 7): ");
                         op2 = sc.nextInt() - 1;
                     }
+                    ultimaCJogada2 = j2.getMao()[op2];
+                    j2.setMao(null, op2);
 
                     limparTela();
-                    ultimaCJogada2 = j2.getMao()[op2];
+
                     exibe.exibeBatalha(ultimaCJogada2, ultimaCJogada1, j2, j1);
                     int resultBatalha = operador.batalhar(ultimaCJogada1, ultimaCJogada2);
                     switch (resultBatalha) {
@@ -110,9 +116,8 @@ public class Program {
                             break;
                     }
                     System.out.println("Digite qualquer valor para continuar");
-                    ultimaCJogada1 = null;
-                    ultimaCJogada2 = null;
-                    j2.setMao(null, op2);
+                    ultimaCJogada1 = aux1;
+                    ultimaCJogada2 = aux2;
                     cartasCompradas = j1.comprarCarta(baralho);
                     nulosBaralho += cartasCompradas;
                     cartasCompradas = j2.comprarCarta(baralho);
@@ -159,22 +164,26 @@ public class Program {
 
                     limparTela();
 
+                    aux1 = ultimaCJogada1;
+                    aux2 = ultimaCJogada2;
                     ultimaCJogada2 = j2.getMao()[op2];
                     j2.setMao(null, op2);
-                    Carta aux = ultimaCJogada1;
+
                     ultimaCJogada1 = null;
                     exibe.exibirJogo(baralho, j1, j2, nulosBaralho, ultimaCJogada1, ultimaCJogada2);
                     System.out.printf("%s chamou uma batalha\n", j2.getNome());
-                    System.out.print("Escolha uma carta preta para jogar (de 1 a 7): ");
+                    System.out.print("Escolha uma carta para jogar (de 1 a 7): ");
                     op1 = sc.nextInt() - 1;
                     while (op1 < 0 || op1 > 6) {
-                        System.out.println("Valor incorreto ou carta de cor incorreta");
+                        System.out.println("Valor incorreto");
                         System.out.print("\nEscolha uma carta para jogar (de 1 a 7): ");
                         op1 = sc.nextInt() - 1;
                     }
                     ultimaCJogada1 = j1.getMao()[op1];
                     j1.setMao(null, op1);
+
                     limparTela();
+
                     exibe.exibeBatalha(ultimaCJogada1, ultimaCJogada2, j1, j2);
                     int resultBatalha = operador.batalhar(ultimaCJogada1, ultimaCJogada2);
                     switch (resultBatalha) {
@@ -191,16 +200,17 @@ public class Program {
                             break;
                     }
                     System.out.println("Digite qualquer valor para continuar");
-                    ultimaCJogada2 = null;
+                    ultimaCJogada1 = aux1;
+                    ultimaCJogada2 = aux2;
                     cartasCompradas = j1.comprarCarta(baralho);
                     nulosBaralho += cartasCompradas;
                     cartasCompradas = j2.comprarCarta(baralho);
                     nulosBaralho += cartasCompradas;
-                    ultimaCJogada1 = aux;
                     sc.next();
                     limparTela();
                 }
             }
+
             exibe.exibirJogo(baralho, j2, j1, nulosBaralho, ultimaCJogada2, ultimaCJogada1);
 
             System.out.print("\nEscolha uma carta para jogar (de 1 a 7): ");
