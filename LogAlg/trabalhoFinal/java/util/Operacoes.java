@@ -95,7 +95,7 @@ public class Operacoes {
     }
 
     public int batalhar (Carta ultimaCJogada1, Carta ultimaCJogada2) {
-        if (ultimaCJogada1.getValor() > ultimaCJogada2.getValor()) {
+        if (ultimaCJogada1.getValor() > ultimaCJogada2.getValor() || !ultimaCJogada2.getCor().equalsIgnoreCase("b")) {
             return 1;
         } else if (ultimaCJogada2.getValor() > ultimaCJogada1.getValor() && ultimaCJogada2.getCor().equalsIgnoreCase("b")) {
             return 2;

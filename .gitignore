@@ -38,5 +38,7 @@ Thumbs.db
 
 # Folders #
 ###########
+.logAlg/.idea/
+.logAlg/out/
 .vscode/
 output/

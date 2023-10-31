@@ -56,7 +56,7 @@ public class Program {
         Carta aux1;
         Carta aux2;
 
-        while (baralho.length - nulosBaralho >= 0) {
+        while (baralho.length - nulosBaralho > 0) {
             limparTela();
 
             exibe.exibirJogo(baralho, j1, j2, nulosBaralho, ultimaCJogada1, ultimaCJogada2);
@@ -123,10 +123,13 @@ public class Program {
                     cartasCompradas = j2.comprarCarta(baralho);
                     nulosBaralho += cartasCompradas;
                     sc.next();
-                    limparTela();
+                    if (!(baralho.length - nulosBaralho > 0)) {
+                        break;
+                    }
                 }
             }
-
+            limparTela();
+            
             exibe.exibirJogo(baralho, j1, j2, nulosBaralho, ultimaCJogada1, ultimaCJogada2);
 
             System.out.print("\nEscolha uma carta para jogar (de 1 a 7): ");
@@ -185,18 +188,18 @@ public class Program {
                     limparTela();
 
                     exibe.exibeBatalha(ultimaCJogada1, ultimaCJogada2, j1, j2);
-                    int resultBatalha = operador.batalhar(ultimaCJogada1, ultimaCJogada2);
+                    int resultBatalha = operador.batalhar(ultimaCJogada2, ultimaCJogada1);
                     switch (resultBatalha) {
                         case 0:
                             System.out.println("A batalha empatou!");
                             break;
                         case 1:
-                            System.out.printf("%s venceu!\n", j1.getNome());
-                            j1.somarVitoria();
-                            break;
-                        case 2:
                             j2.somarVitoria();
                             System.out.printf("%s venceu!\n", j2.getNome());
+                            break;
+                        case 2:
+                            System.out.printf("%s venceu!\n", j1.getNome());
+                            j1.somarVitoria();
                             break;
                     }
                     System.out.println("Digite qualquer valor para continuar");
@@ -207,9 +210,13 @@ public class Program {
                     cartasCompradas = j2.comprarCarta(baralho);
                     nulosBaralho += cartasCompradas;
                     sc.next();
-                    limparTela();
+                    if (!(baralho.length - nulosBaralho > 0)) {
+                        break;
+                    }
                 }
             }
+
+            limparTela();
 
             exibe.exibirJogo(baralho, j2, j1, nulosBaralho, ultimaCJogada2, ultimaCJogada1);
 
@@ -225,10 +232,19 @@ public class Program {
             nulosBaralho += cartasCompradas;
         }
 
+        for (int i = 0; i < 7; i++) {
+            if (j1.getMao()[i] != null) {
+                j1.jogarCarta(i);
+            }
+            if (j2.getMao()[i] != null) {
+                j2.jogarCarta(i);
+            }
+        }
+
         j1.calcPontFinal();
         j2.calcPontFinal();
 
-        System.out.printf("Pontuacao jogador 1: %d\nPontuacao jogador 2: %d", j1.getPontFinal(), j2.getPontFinal());
+        System.out.printf("Pontuacao jogador 1: %d\nPontuacao jogador 2: %d\n", j1.getPontFinal(), j2.getPontFinal());
 
         if (j1.getPontFinal() > j2.getPontFinal()) {
             System.out.println("Jogador 1 ganhou!");
