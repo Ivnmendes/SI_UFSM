@@ -29,22 +29,51 @@ typedef struct {
 
 // Você deve implementar as funções faltantes e outras que achar necessário
 // abaixo desta linha
-bool le_triangulos(vetor_de_triangulos *t)
+bool le_triangulo(triangulo *t, FILE *arq)
 {
-    for(int i = 0; i < t->n_triangulos; i++)
+    if (arq == NULL)
     {
-        printf("Digite os lados do triângulo %d:\n", i+1);
-        scanf("%f %f %f", &t->triangulos[i].lado1, &t->triangulos[i].lado2, &t->triangulos[i].lado3);
+        printf("Erro ao abrir arquivo!");
+        return false;
     }
+
+    fscanf(arq, "%f %f %f", &t->lado1, &t->lado2, &t->lado3);
 
     return true;
 }
+
+bool le_triangulos(vetor_de_triangulos *t, int n_t)
+{
+    FILE *arq;
+    arq = fopen("./arquivo/triangulos.txt", "r");
+    if (arq == NULL)
+    {
+        printf("Erro ao abrir arquivo!");
+        return false;
+    }
+
+    fscanf(arq, "%d\n", &t->n_triangulos);
+
+    if (n_t != t->n_triangulos) {
+        printf("Numero de triangulos inseridos diferente do registrado no arquivo\n");
+        return false;
+    }
+    
+    for(int i = 0; i < t->n_triangulos; i++) 
+    {
+        le_triangulo(&t->triangulos[i], arq);
+    }
+
+    fclose(arq);
+    return true;
+}
+
 
 void classifica_triangulos(vetor_de_triangulos *t) 
 {
     for (int i = 0; i < t->n_triangulos; i++) 
     {
-        if (t->triangulos[i].lado1 > t->triangulos[i].lado2 + t->triangulos[i].lado3 || t->triangulos[i].lado2 > t->triangulos[i].lado1 + t->triangulos[i].lado3 || t->triangulos[i].lado3 > t->triangulos[i].lado1 + t->triangulos[i].lado2) 
+        if (t->triangulos[i].lado1 <= 0 || t->triangulos[i].lado2 <= 0 || t->triangulos[i].lado3 <= 0 || (t->triangulos[i].lado1 > t->triangulos[i].lado2 + t->triangulos[i].lado3 || t->triangulos[i].lado2 > t->triangulos[i].lado1 + t->triangulos[i].lado3 || t->triangulos[i].lado3 > t->triangulos[i].lado1 + t->triangulos[i].lado2)) 
         {
             t->triangulos[i].tipo = 0;
         }
@@ -106,9 +135,8 @@ int main()
         printf("Deve ser entre %d e %d\n", 1, MAX_TRIANGULOS);
         return 5;
     }
-    vetor.n_triangulos = n_t;
-
-    le_triangulos(&vetor);
+    if (le_triangulos(&vetor, n_t))
+    {  
     classifica_triangulos(&vetor);
     conta_triangulos(&vetor, contadores);
 
@@ -117,4 +145,8 @@ int main()
     printf("  %d isósceles\n", contadores[2]);
     printf("  %d escalenos\n", contadores[3]);
     printf("  %d não triângulos\n", contadores[0]);
+    }
+    else {
+        printf("Encerrando Programa...\n");
+    }
 }
