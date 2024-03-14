@@ -44,41 +44,43 @@ void classifica_triangulos(vetor_de_triangulos *t)
 {
     for (int i = 0; i < t->n_triangulos; i++) 
     {
-        if (t->triangulos[i].lado1 < t->triangulos[i].lado2 + t->triangulos[i].lado3 && t->triangulos[i].lado2 < t->triangulos[i].lado1 + t->triangulos[i].lado3 && t->triangulos[i].lado3 < t->triangulos[i].lado1 + t->triangulos[i].lado2) 
+        if (t->triangulos[i].lado1 > t->triangulos[i].lado2 + t->triangulos[i].lado3 || t->triangulos[i].lado2 > t->triangulos[i].lado1 + t->triangulos[i].lado3 || t->triangulos[i].lado3 > t->triangulos[i].lado1 + t->triangulos[i].lado2) 
         {
-            t->triangulos[i].tipo = "nao triangulo";
+            t->triangulos[i].tipo = 0;
         }
         else if(t->triangulos[i].lado1 == t->triangulos[i].lado2 && t->triangulos[i].lado1 == t->triangulos[i].lado3) 
         {
-            t->triangulos[i].tipo = "equilatero";
+            t->triangulos[i].tipo = 1;
         } 
         else if (t->triangulos[i].lado1 != t->triangulos[i].lado2 && t->triangulos[i].lado1 != t->triangulos[i].lado3 && t->triangulos[i].lado2 != t->triangulos[i].lado3)
         {
-            t->triangulos[i].tipo = "isoceles";
+            t->triangulos[i].tipo = 2;
         }
         else 
         {
-            t->triangulos[i].tipo = "escaleno";
+            t->triangulos[i].tipo = 3;
         }
     }
 }
 
-void conta_triangulos(vetor_de_triangulos *t, int *contagem) 
+void conta_triangulos(vetor_de_triangulos *t, int contagem[]) 
 {
     for (int i = 0; i < t->n_triangulos; i++) 
     {
-        if (t->triangulos[i].tipo == "nao triangulo") 
+        switch (t->triangulos[i].tipo) 
         {
-            *(contagem);
-        }
-        else if (t->triangulos[i].tipo == "equilatero") {
-            *(contagem + 1)++;
-        }
-        else if (t->triangulos[i].tipo == "isoceles") {
-            *(contagem + 2)++;
-        }
-        else if (t->triangulos[i].tipo == "escalenos") {
-            *(contagem + 3)++;
+            case 0:
+                contagem[0]++;
+                break;
+            case 1:
+                contagem[1]++;
+                break;
+            case 2:
+                contagem[3]++;
+                break;
+            case 3:
+                contagem[2]++;
+                break;
         }
     }
 }
@@ -108,7 +110,7 @@ int main()
 
     le_triangulos(&vetor);
     classifica_triangulos(&vetor);
-    conta_triangulos(&vetor, &contadores);
+    conta_triangulos(&vetor, contadores);
 
     printf("Classificação dos triângulos:\n");
     printf("  %d equiláteros\n", contadores[1]);
