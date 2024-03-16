@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 // tipo de dados que representa um triângulo
 typedef struct {
@@ -19,35 +20,23 @@ typedef struct {
 } triangulo;
 
 // número máximo de triângulos suportado pelo programa
-#define MAX_TRIANGULOS 100
 
 // tipo de dados que representa um vetor de triângulos
 typedef struct {
+    int max_triangulos;
     int n_triangulos;                     // número de triângulos no vetor
-    triangulo triangulos[MAX_TRIANGULOS]; // vetor com os triângulos
+    triangulo *triangulos; // vetor com os triângulos
 } vetor_de_triangulos;
 
 // Você deve implementar as funções faltantes e outras que achar necessário
 // abaixo desta linha
-bool le_triangulo(triangulo *t, FILE *arq)
-{
-    if (arq == NULL)
-    {
-        printf("Erro ao abrir arquivo!");
-        return false;
-    }
-
-    fscanf(arq, "%f %f %f", &t->lado1, &t->lado2, &t->lado3);
-
-    return true;
-}
+bool le_triangulo(triangulo *t, FILE *arq);
 
 bool le_triangulos(vetor_de_triangulos *t, int n_t)
 {
     FILE *arq;
     arq = fopen("./arquivo/triangulos.txt", "r");
-    if (arq == NULL)
-    {
+    if (arq == NULL) {
         printf("Erro ao abrir arquivo!");
         return false;
     }
@@ -58,9 +47,10 @@ bool le_triangulos(vetor_de_triangulos *t, int n_t)
         printf("Numero de triangulos inseridos diferente do registrado no arquivo\n");
         return false;
     }
+
+    t->max_triangulos = n_t;
     
-    for(int i = 0; i < t->n_triangulos; i++) 
-    {
+    for(int i = 0; i < t->n_triangulos; i++) {
         le_triangulo(&t->triangulos[i], arq);
     }
 
@@ -71,22 +61,17 @@ bool le_triangulos(vetor_de_triangulos *t, int n_t)
 
 void classifica_triangulos(vetor_de_triangulos *t) 
 {
-    for (int i = 0; i < t->n_triangulos; i++) 
-    {
-        if (t->triangulos[i].lado1 <= 0 || t->triangulos[i].lado2 <= 0 || t->triangulos[i].lado3 <= 0 || (t->triangulos[i].lado1 > t->triangulos[i].lado2 + t->triangulos[i].lado3 || t->triangulos[i].lado2 > t->triangulos[i].lado1 + t->triangulos[i].lado3 || t->triangulos[i].lado3 > t->triangulos[i].lado1 + t->triangulos[i].lado2)) 
-        {
+    for (int i = 0; i < t->n_triangulos; i++) {
+        if (t->triangulos[i].lado1 <= 0 || t->triangulos[i].lado2 <= 0 || t->triangulos[i].lado3 <= 0 || (t->triangulos[i].lado1 > t->triangulos[i].lado2 + t->triangulos[i].lado3 || t->triangulos[i].lado2 > t->triangulos[i].lado1 + t->triangulos[i].lado3 || t->triangulos[i].lado3 > t->triangulos[i].lado1 + t->triangulos[i].lado2)) {
             t->triangulos[i].tipo = 0;
         }
-        else if(t->triangulos[i].lado1 == t->triangulos[i].lado2 && t->triangulos[i].lado1 == t->triangulos[i].lado3) 
-        {
+        else if(t->triangulos[i].lado1 == t->triangulos[i].lado2 && t->triangulos[i].lado1 == t->triangulos[i].lado3) {
             t->triangulos[i].tipo = 1;
         } 
-        else if (t->triangulos[i].lado1 != t->triangulos[i].lado2 && t->triangulos[i].lado1 != t->triangulos[i].lado3 && t->triangulos[i].lado2 != t->triangulos[i].lado3)
-        {
+        else if (t->triangulos[i].lado1 != t->triangulos[i].lado2 && t->triangulos[i].lado1 != t->triangulos[i].lado3 && t->triangulos[i].lado2 != t->triangulos[i].lado3) {
             t->triangulos[i].tipo = 2;
         }
-        else 
-        {
+        else {
             t->triangulos[i].tipo = 3;
         }
     }
@@ -94,10 +79,8 @@ void classifica_triangulos(vetor_de_triangulos *t)
 
 void conta_triangulos(vetor_de_triangulos *t, int contagem[]) 
 {
-    for (int i = 0; i < t->n_triangulos; i++) 
-    {
-        switch (t->triangulos[i].tipo) 
-        {
+    for (int i = 0; i < t->n_triangulos; i++) {
+        switch (t->triangulos[i].tipo) {
             case 0:
                 contagem[0]++;
                 break;
@@ -114,12 +97,35 @@ void conta_triangulos(vetor_de_triangulos *t, int contagem[])
     }
 }
 
+vetor_de_triangulos *aloca_vetor_de_triangulos(int n_triangulos) 
+{
+    vetor_de_triangulos *vet;
+
+    vet = (vetor_de_triangulos *) malloc(sizeof(vetor_de_triangulos));
+    vet->triangulos = (triangulo *) malloc(n_triangulos * sizeof(triangulo));
+    
+    if (vet == NULL) {
+        printf("Memoria insuficiente!");
+        return NULL;
+    } else {
+        return vet;
+    }
+}
+
 // essa função deve existir e ser usada para a leitura de um triângulo.
 // lê os valores dos 3 lados de um triângulo,
 //   inicializa o triângulo apontado por t com esses valores.
 // retorna true se bem sucedido ou false em caso de problema (que pode acontecer na
 //   parte II)
-
+bool le_triangulo(triangulo *t, FILE *arq)
+{
+    if (arq == NULL) {
+        printf("Erro ao abrir arquivo!");
+        return false;
+    }
+    fscanf(arq, "%f %f %f", &t->lado1, &t->lado2, &t->lado3);
+    return true;
+}
 
 // Você não deve alterar abaixo desta linha para a parte I do trabalho
 
@@ -131,22 +137,17 @@ int main()
 
     printf("Número de triângulos: ");
     scanf("%d", &n_t);
-    if (n_t < 1 || n_t > MAX_TRIANGULOS) {
-        printf("Deve ser entre %d e %d\n", 1, MAX_TRIANGULOS);
-        return 5;
-    }
-    if (le_triangulos(&vetor, n_t))
-    {  
-    classifica_triangulos(&vetor);
-    conta_triangulos(&vetor, contadores);
+    vetor = *aloca_vetor_de_triangulos(n_t);
+    if (le_triangulos(&vetor, n_t)) { 
+        classifica_triangulos(&vetor);
+        conta_triangulos(&vetor, contadores);
 
-    printf("Classificação dos triângulos:\n");
-    printf("  %d equiláteros\n", contadores[1]);
-    printf("  %d isósceles\n", contadores[2]);
-    printf("  %d escalenos\n", contadores[3]);
-    printf("  %d não triângulos\n", contadores[0]);
-    }
-    else {
+        printf("Classificação dos triângulos:\n");
+        printf("  %d equiláteros\n", contadores[1]);
+        printf("  %d isósceles\n", contadores[2]);
+        printf("  %d escalenos\n", contadores[3]);
+        printf("  %d não triângulos\n", contadores[0]);
+    } else {
         printf("Encerrando Programa...\n");
     }
 }
