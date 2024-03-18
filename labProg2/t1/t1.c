@@ -25,39 +25,39 @@ typedef struct {
 typedef struct {
     int max_triangulos;
     int n_triangulos;                     // número de triângulos no vetor
-    triangulo *triangulos; // vetor com os triângulos
+    triangulo *triangulos;                // vetor com os triângulos
 } vetor_de_triangulos;
 
 // Você deve implementar as funções faltantes e outras que achar necessário
 // abaixo desta linha
 bool le_triangulo(triangulo *t, FILE *arq);
+vetor_de_triangulos *aloca_vetor_de_triangulos(int n_triangulos);
 
-bool le_triangulos(vetor_de_triangulos *t, int n_t)
+bool le_triangulos(vetor_de_triangulos *t, int n_t, FILE *arq)
 {
-    FILE *arq;
-    arq = fopen("./arquivo/triangulos.txt", "r");
-    if (arq == NULL) {
-        printf("Erro ao abrir arquivo!");
-        return false;
-    }
-
     fscanf(arq, "%d\n", &t->n_triangulos);
 
     if (n_t != t->n_triangulos) {
-        printf("Numero de triangulos inseridos diferente do registrado no arquivo\n");
+        printf("Numero de triangulos inseridos diferente do registrado no arquivo!\n");
         return false;
     }
 
-    t->max_triangulos = n_t;
+    *t = *aloca_vetor_de_triangulos(n_t);
+    if (t == NULL) {
+        return false;
+    }
     
-    for(int i = 0; i < t->n_triangulos; i++) {
+    for(int i = 0; i < t->max_triangulos; i++) {
+        t->n_triangulos++;
         le_triangulo(&t->triangulos[i], arq);
+        if (feof(arq)) {
+            printf("Numero de triangulos contidos no arquivo e diferente do registrado/inserido!\n");
+            return false;
+        }
     }
 
-    fclose(arq);
     return true;
 }
-
 
 void classifica_triangulos(vetor_de_triangulos *t) 
 {
@@ -103,6 +103,9 @@ vetor_de_triangulos *aloca_vetor_de_triangulos(int n_triangulos)
 
     vet = (vetor_de_triangulos *) malloc(sizeof(vetor_de_triangulos));
     vet->triangulos = (triangulo *) malloc(n_triangulos * sizeof(triangulo));
+
+    vet->n_triangulos = 0;
+    vet->max_triangulos = n_triangulos;
     
     if (vet == NULL) {
         printf("Memoria insuficiente!");
@@ -119,10 +122,6 @@ vetor_de_triangulos *aloca_vetor_de_triangulos(int n_triangulos)
 //   parte II)
 bool le_triangulo(triangulo *t, FILE *arq)
 {
-    if (arq == NULL) {
-        printf("Erro ao abrir arquivo!");
-        return false;
-    }
     fscanf(arq, "%f %f %f", &t->lado1, &t->lado2, &t->lado3);
     return true;
 }
@@ -131,23 +130,34 @@ bool le_triangulo(triangulo *t, FILE *arq)
 
 int main()
 {
-    vetor_de_triangulos vetor;
-    int n_t;
-    int contadores[4] = { 0 };
+    FILE *arq;
+    arq = fopen("./arquivo/triangulos.txt", "r");
+    if (arq != NULL) {
+        vetor_de_triangulos vetor;
+        int n_t;
+        int contadores[4] = { 0 };
 
-    printf("Número de triângulos: ");
-    scanf("%d", &n_t);
-    vetor = *aloca_vetor_de_triangulos(n_t);
-    if (le_triangulos(&vetor, n_t)) { 
-        classifica_triangulos(&vetor);
-        conta_triangulos(&vetor, contadores);
+        printf("Número de triângulos: ");
+        scanf("%d", &n_t);
 
-        printf("Classificação dos triângulos:\n");
-        printf("  %d equiláteros\n", contadores[1]);
-        printf("  %d isósceles\n", contadores[2]);
-        printf("  %d escalenos\n", contadores[3]);
-        printf("  %d não triângulos\n", contadores[0]);
+        if (le_triangulos(&vetor, n_t, arq)) { 
+            classifica_triangulos(&vetor);
+            conta_triangulos(&vetor, contadores);
+
+            printf("Classificação dos triângulos:\n");
+            printf("  %d equiláteros\n", contadores[1]);
+            printf("  %d isósceles\n", contadores[2]);
+            printf("  %d escalenos\n", contadores[3]);
+            printf("  %d não triângulos\n", contadores[0]);
+            
+            return 1;
+        } else {
+            printf("Encerrando Programa...\n");
+        }
+        fclose(arq);
     } else {
-        printf("Encerrando Programa...\n");
+        printf("Erro ao abrir arquivo!\n");
     }
+
+    return 0;
 }
