@@ -1,92 +1,127 @@
 #include "fila.h"
-#include <stdlib.h>
-
+#include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-// Comando para compilar gcc -c fila.c -o fila.out && gcc -c t2.c -o t2.out && gcc fila.out t2.out -o main && ./main
+#define MAX_ELEM 1000
 
-typedef struct _fila {
-    int max;
-    int tot;
-    int prim;
-    int ult;
-    dado_t *vet;
-} fila;
+struct _fila {
+  int max; //
+  int n_elem;
+  int tam_dado;
+  int prim; //
+  int ult; //
+  int pos_percurso;
+  void *espaco;
+};
 
-// Cria uma fila alocando "max" elementos
-Fila fila_cria(int max)
-{
-    Fila self = malloc(sizeof(fila));
-    if (self == NULL) {
-        return NULL;
+// funções que implementam as operações básicas de uma fila
+
+// cria uma fila vazia que suporta dados do tamanho fornecido (em bytes)
+Fila fila_cria(int tam_do_dado) {
+  Fila self = malloc(sizeof(struct _fila));
+  if (self != NULL) {
+    self->espaco = malloc(10 * tam_do_dado);
+    if (self->espaco != NULL) {
+      self->max = 10;
+      self->n_elem = 0;
+      self->prim = 0;
+      self->ult = -1;
+      self->tam_dado = tam_do_dado;
+    } else {
+      free(self);
+      self = NULL;
     }
-
-    self->vet = malloc(max * sizeof(dado_t));
-    if (self->vet == NULL) {
-        free(self);
-        return NULL;
-    }
-
-    self->max = max;
-    self->tot = 0;
-    self->prim = 0;
-    self->ult = -1;
-
-    return self;
+  }
+  return self;
 }
 
-// Libera a memória da alocada
-void fila_destroi(Fila self)
+void fila_destroi(Fila self) {
+  free(self->espaco);
+  free(self);
+}
+
+// calcula o valor do ponteiro para o elemento na posição pos da fila
+static void *calcula_ponteiro(Fila self, int pos)
 {
-    free(self->vet);
-    free(self);
+  // TODO: suporte a pos negativa
+  if (pos < 0) {
+    pos += self->max;
+  }
+  //
+  if (pos < 0 || pos >= self->n_elem) return NULL;
+  // calcula a posição convertendo para char *, porque dá para somar em
+  //   bytes. tem que fazer essa conversão porque não conhecemos o tipo
+  //   do dado do usuário, só o tamanho.
+  void *ptr = (char *)self->espaco + pos * self->tam_dado;
+  return ptr;
 }
 
-// Insere um elemento na fila
-void fila_insere(Fila self, dado_t d)
+bool fila_vazia(Fila self) { return self->n_elem == 0; }
+
+bool fila_cheia(Fila self) { return self->n_elem == self->max; }
+
+void fila_remove(Fila self, void *pdado) {
+  // *
+  assert(!fila_vazia(self));
+  // *
+  // /void *ptr = calcula_ponteiro(self, 0);
+  void *ptr = calcula_ponteiro(self, (self->prim - self->prim) % self->max);
+  assert(ptr != NULL);
+  if (pdado != NULL) {
+    memmove(pdado, ptr, self->tam_dado);
+  }
+  self->n_elem--;
+  // *
+  self->prim = (self->prim + 1) % self->max;
+  if (self->n_elem < self->max / 3) {
+    self->espaco = realloc(self->espaco, self->tam_dado * (self->max / 2));
+    self->max /= 2;
+  }
+  // *
+  // /ptr = calcula_ponteiro(self, 1);
+  // /if (ptr != NULL) {
+    // ptr aponta para o segundo elemento da fila
+    //   (que vira o primeiro)
+    // copia os dados que sobraram para o início do espaço
+    //   (não precisaria fazer isso com vetor circular)
+    // /memmove(self->espaco, ptr, self->tam_dado * (self->n_elem - 1));
+  // /}
+}
+
+void fila_insere(Fila self, void *pdado) {
+  // /assert(self->n_elem < MAX_ELEM);
+  //*
+  if (fila_cheia(self)) {
+    self->espaco = realloc(self->espaco, self->tam_dado * (self->max * 2));
+    assert(self->espaco != NULL);
+    self->max *= 2;
+  }
+  self->ult = (self->ult + 1) % self->max;
+  void *ptr = calcula_ponteiro(self, (self->prim - self->n_elem - 1) % self->max);
+  //*
+  int x = (self->prim - self->n_elem - 1) % self->max;
+  self->n_elem++;
+  // /void *ptr = calcula_ponteiro(self, self->n_elem - 1);
+  memmove(ptr, pdado, self->tam_dado);
+}
+
+
+void fila_inicia_percurso(Fila self, int pos_inicial)
 {
-    if (!fila_cheia(self)) {
-        self->ult = (self->ult + 1) % self->max; //revisar
-        self->vet[self->ult] = d;
-        self->tot++;
-    }
+  self->pos_percurso = pos_inicial;
 }
 
-// Remove um elemento da fila e o retorna
-dado_t fila_remove(Fila self)
+bool fila_proximo(Fila self, void *pdado)
 {
-    if (!fila_vazia(self)) {
-        dado_t aux = self->vet[self->prim];
-        self->prim = (self->prim+1) & self->max; //revisar
-        self->tot--;
-        return aux;
-    }
+  void *ptr = calcula_ponteiro(self, self->pos_percurso);
+  if (ptr == NULL) return false;
+  memmove(pdado, ptr, self->tam_dado);
+  if (self->pos_percurso < 0) {
+    self->pos_percurso--;
+  } else {
+    self->pos_percurso++;
+  }
+  return true;
 }
-
-// Verifica se a fila esta vazia
-bool fila_vazia(Fila self)
-{
-    return self->tot <= 0;
-}
-
-// Verifica se a fila esta cheia
-bool fila_cheia(Fila self)
-{
-    return self->tot >= self->max;
-}
-
-void mostrarFila(Fila self){
-
-	int cont, i;
-
-	for ( cont = 0, i = self->prim; cont < self->tot; cont++){
-
-		printf("%d\t", self->vet[i++]);
-
-		if (i == self->max)
-			i=0;
-
-	}
-	printf("\n\n");
-
-} //
