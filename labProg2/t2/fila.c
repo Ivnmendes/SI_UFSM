@@ -7,11 +7,11 @@
 #define MAX_ELEM 1000
 
 struct _fila {
-  int max; //
+  int max;
   int n_elem;
   int tam_dado;
-  int prim; //
-  int ult; //
+  int prim;
+  int ult;
   int pos_percurso;
   void *espaco;
 };
@@ -63,47 +63,36 @@ bool fila_vazia(Fila self) { return self->n_elem == 0; }
 bool fila_cheia(Fila self) { return self->n_elem == self->max; }
 
 void fila_remove(Fila self, void *pdado) {
-  // *
   assert(!fila_vazia(self));
-  // *
-  // /void *ptr = calcula_ponteiro(self, 0);
-  void *ptr = calcula_ponteiro(self, (self->prim - self->prim) % self->max);
+  void *ptr = calcula_ponteiro(self, self->prim)/*(self->prim - self->prim) % self->max)*/;
   assert(ptr != NULL);
   if (pdado != NULL) {
     memmove(pdado, ptr, self->tam_dado);
   }
   self->n_elem--;
-  // *
-  self->prim = (self->prim + 1) % self->max;
+  if (self->prim == self->n_elem) {
+    self->prim = 0;
+  }
+  self->prim++;
   if (self->n_elem < self->max / 3) {
     self->espaco = realloc(self->espaco, self->tam_dado * (self->max / 2));
     self->max /= 2;
   }
-  // *
-  // /ptr = calcula_ponteiro(self, 1);
-  // /if (ptr != NULL) {
-    // ptr aponta para o segundo elemento da fila
-    //   (que vira o primeiro)
-    // copia os dados que sobraram para o início do espaço
-    //   (não precisaria fazer isso com vetor circular)
-    // /memmove(self->espaco, ptr, self->tam_dado * (self->n_elem - 1));
-  // /}
 }
 
 void fila_insere(Fila self, void *pdado) {
-  // /assert(self->n_elem < MAX_ELEM);
-  //*
   if (fila_cheia(self)) {
     self->espaco = realloc(self->espaco, self->tam_dado * (self->max * 2));
     assert(self->espaco != NULL);
     self->max *= 2;
   }
-  self->ult = (self->ult + 1) % self->max;
-  void *ptr = calcula_ponteiro(self, (self->prim - self->n_elem - 1) % self->max);
-  //*
-  int x = (self->prim - self->n_elem - 1) % self->max;
+  if (self->ult == self->n_elem-1) {
+    self->ult = -1;
+  }
+  self->ult++;
   self->n_elem++;
-  // /void *ptr = calcula_ponteiro(self, self->n_elem - 1);
+  void *ptr = calcula_ponteiro(self, self->ult)/*(self->ult - (self->n_elem - 1)) % self->max)*/;
+  assert(ptr != NULL);
   memmove(ptr, pdado, self->tam_dado);
 }
 

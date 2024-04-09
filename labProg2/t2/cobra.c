@@ -262,16 +262,16 @@ void desenha_tela(estado *j) {
 void processa_teclado(estado *j) {
   char c = tecla_le_char();
   switch (c) {
-  case 'u':
+  case 'w':
     j->aninha.dir = cima;
     break;
-  case 'n':
+  case 'a':
     j->aninha.dir = esquerda;
     break;
-  case 'e':
+  case 's':
     j->aninha.dir = baixo;
     break;
-  case 'i':
+  case 'd':
     j->aninha.dir = direita;
     break;
   }
