@@ -1,0 +1,7 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<usuario>
+    <codigo id=""></codigo>
+    <nomeUsuario></nomeUsuario>
+    <numeroUsuario></numeroUsuario>
+    <fotoUsuario src = "fotoUsuario.png" alt = "foto de perfil do usuario"/>
+</usuario>

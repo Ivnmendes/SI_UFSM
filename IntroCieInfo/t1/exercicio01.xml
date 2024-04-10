@@ -1,0 +1,20 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<chamado>
+    <detalhesChamador>
+        <nomeChamador></nomeChamador>
+        <numeroTelefoneChamador></numeroTelefoneChamador>
+        <departamentoChamador></departamentoChamador>
+    </detalhesChamador>
+    <detalhesChamada>
+        <tipoChamada></tipoChamada>
+        <dataHoraChamada formato="YYYY-MM-DD HH:mm:s"></dataHoraChamada>
+        <protocoloDaChamada></protocoloDaChamada>
+    </detalhesChamada>
+    <detalhesLocal>
+        <local></local>
+        <ramal></ramal>
+    </detalhesLocal>
+    <detalhesProblema>
+        <tipoProblema></tipoProblema>
+    </detalhesProblema>
+</chamado>

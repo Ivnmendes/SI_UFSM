@@ -1,0 +1,8 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<mensagem>
+    <textoMensagem></textoMensagem>
+    <dataHoraEnvio formato="YYYY-MM-DD HH:mm:ss"></dataHoraEnvio>
+    <statusMensagem></statusMensagem>
+    <tipoMensagem></tipoMensagem>
+    <codigoDestinatario id=""></codigoDestinatario>
+</mensagem>

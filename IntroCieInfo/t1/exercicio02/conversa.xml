@@ -1,0 +1,18 @@
+<?xml version = "1.0" encoding = "UTF-8"?>
+<conversa>
+    <listaMensagens>
+        <codigoUsuario id=""></codigoUsuario>
+        <mensagem></mensagem>
+        <dataHoraMensagem formato="YYYY-MM-DD HH:mm:ss"></dataHoraMensagem>
+    </listaMensagens>
+    <participantes>
+        <nomeParticipante></nomeParticipante>
+        <codigoParticipante id=""></codigoParticipante>
+    </participantes>
+    <nomeConversa>
+        <nome></nome>
+    </nomeConversa>
+    <notificacoes>
+        <estaoAtivadas></estaoAtivadas>
+    </notificacoes>
+</conversa>
