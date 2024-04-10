@@ -1,0 +1,27 @@
+name: TDD A2 - ed2024a
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Instala valgrind
+      run: sudo apt install -y valgrind
+    - name: Compila catch
+      run: g++ -Wall -g -c catch_amalgamated.cpp
+    - name: Compila testes
+      run: g++ -Wall -g -c testes.cpp
+    - name: Compila matriz
+      run: gcc -Wall -g -c matriz.c
+    - name: Programa final
+      run: g++ -Wall -g matriz.o testes.o  catch_amalgamated.o
+    - name: Roda testes no valgrind
+      run: valgrind --leak-check=full ./a.out --reporter compact --success
