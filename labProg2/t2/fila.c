@@ -50,7 +50,7 @@ static void *calcula_ponteiro(Fila self, int pos)
     pos += self->max;
   }
   //
-  if (pos < 0 || pos >= self->n_elem) return NULL;
+  if (pos < 0 || pos >= self->max) return NULL;
   // calcula a posição convertendo para char *, porque dá para somar em
   //   bytes. tem que fazer essa conversão porque não conhecemos o tipo
   //   do dado do usuário, só o tamanho.
@@ -79,21 +79,25 @@ void fila_remove(Fila self, void *pdado) {
 
 void fila_insere(Fila self, void *pdado) {
   if (fila_cheia(self)) {
-    self->espaco = realloc(self->espaco, self->tam_dado * (self->max * 2));
-    assert(self->espaco != NULL);
+    int novoMax = self->max * 2;
+    void *listaAux = malloc(novoMax * self->tam_dado);
+    assert(listaAux != NULL);
     if (self->ult > self->prim) {
-      memmove(self, (char*)self->espaco + self->prim + 1, self->n_elem * sizeof(self->tam_dado));
+      memmove(listaAux, self->espaco + self->prim, self->n_elem * self->tam_dado);
     } else {
-      memmove(self, (char*)self->espaco + self->ult, (self->max - self->prim) * sizeof(self->tam_dado)); // revisar
-      memmove(self + self->max - self->prim, self->espaco, (self->ult + 1) * sizeof(self->tam_dado));
+      memmove(listaAux, self->espaco + self->prim, self->tam_dado * (self->max - self->prim));
+      memmove(listaAux + (self->tam_dado * (self->max - self->prim)), self->espaco, self->tam_dado * (self->ult + 1));
     }
+
+    free(self->espaco);
+    self->espaco = listaAux;
     self->prim = 0;
-    self->ult = self->n_elem - 1;
+    self->ult = self->max - 1;
     self->max *= 2;
   }
   self->ult = (self->ult + 1) % self->max;
-  self->n_elem++;
   void *ptr = calcula_ponteiro(self, self->ult);
+  self->n_elem++;
   assert(ptr != NULL);
   memmove(ptr, pdado, self->tam_dado);
 }
@@ -104,12 +108,12 @@ void imprime_fila(Fila self) {
 
   printf("[ ");
   for(cont = 0, i = self->prim; cont < self->n_elem; cont++) {
-    printf("%d ", * ((int*) (self->espaco + self->prim + i * self->tam_dado)));
+    printf("%d ", * ((int*) (self->espaco + i * self->tam_dado)));
 
     i = (i + 1) % self->max;
   }
   printf("]\n");
-  printf("max: %d prim:%d ult:%d n_elem:%d\n", self->max,self->prim,self->ult,self->ult);
+  printf("max: %d prim:%d ult:%d n_elem:%d\n", self->max,self->prim,self->ult,self->n_elem);
 }
 
 void fila_inicia_percurso(Fila self, int pos_inicial)
