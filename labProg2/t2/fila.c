@@ -82,9 +82,9 @@ void fila_insere(Fila self, void *pdado) {
     self->espaco = realloc(self->espaco, self->tam_dado * (self->max * 2));
     assert(self->espaco != NULL);
     if (self->ult > self->prim) {
-      memmove(self, (char*)self->espaco + self->ult * self->tam_dado, self->n_elem * sizeof(self->tam_dado));
+      memmove(self, (char*)self->espaco + self->prim + 1, self->n_elem * sizeof(self->tam_dado));
     } else {
-      memmove(self, (char*)self->espaco + self->ult * self->tam_dado, (self->max - self->prim) * sizeof(self->tam_dado)); // revisar
+      memmove(self, (char*)self->espaco + self->ult, (self->max - self->prim) * sizeof(self->tam_dado)); // revisar
       memmove(self + self->max - self->prim, self->espaco, (self->ult + 1) * sizeof(self->tam_dado));
     }
     self->prim = 0;
@@ -104,11 +104,12 @@ void imprime_fila(Fila self) {
 
   printf("[ ");
   for(cont = 0, i = self->prim; cont < self->n_elem; cont++) {
-    printf("%d ", * ((int*) (self->espaco + i * self->tam_dado)));
+    printf("%d ", * ((int*) (self->espaco + self->prim + i * self->tam_dado)));
 
     i = (i + 1) % self->max;
   }
   printf("]\n");
+  printf("max: %d prim:%d ult:%d n_elem:%d\n", self->max,self->prim,self->ult,self->ult);
 }
 
 void fila_inicia_percurso(Fila self, int pos_inicial)

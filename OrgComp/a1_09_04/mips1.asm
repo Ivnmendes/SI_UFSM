@@ -1,18 +1,18 @@
 # Projeto:
 # Arquivo:
-# Descrição:
+# Descricao:
 # Autor:
 # Data:
 
-# Anotações
+# Anotacoes
 	# Tipos de registradores
-		# $zero: Reservado para o número 0
-		# $at: Reservado temporário para o assembly
+		# $zero: Reservado para o numero 0
+		# $at: Reservado temporario para o assembly
 		# $vX:
 		# $aX:
-		# º$t0 - $t7: Temporário (não preservado na chamada da função)
-		# º$sX: Salvo (preservado na chamada da função)
-		# º$t8, $t9: Temporário
+		# $t0 - $t7: Temporario (nao preservado na chamada da funcao)
+		# $sX: Salvo (preservado na chamada da funcao)
+		# $t8, $t9: Temporario
 		# $kX:
 		# $gp: Ponteiro global
 		# $sp:
@@ -20,21 +20,30 @@
 		# $ra:
 
 .text
-# Código
+# Codigo
+nop			# nop: no operation (nao faz nada)
+li	$t0, 12		# li: carrega imediatamente (atribui 12 ao registrador $t0) - equivalente de "addiu $t0, %0, 0x0000000C
+la	$t1, loop	# la: carrega endereco
+loop:			#
+add 	$t1, $t2, $t3 	# 
+lw 	$a0, 16($a1)	#
+sw 	$a0, 32($a1)	#
+beq 	$t1, $t2, loop	# beq: desvio condicional (se $t1 == $t2 desvia para loop)
+j 	loop		# j: desvie o codigo para tal endereco
 
-# Carregar arquivo binário na memória
-# Enquanto não terminaram as instruções
-	# (1) Ler uma instrução
-	# (2) Decodificar a instrução
-	# (3) Executar a instrução
+# Carregar arquivo binario na memoria
+# Enquanto nao terminaram as instrucoes
+	# (1) Ler uma instrucao
+	# (2) Decodificar a instrucao
+	# (3) Executar a instrucao
 # Terminar programa
 
 .data
 # dados do simulador
 
-# Variáveis memória
+# Variaveis memoria
 	# Segmento da dados
-	# Segmento de código
+	# Segmento de codigo
 	# Segmento da pilha
 # Registradores
-# Campos da instrução
+# Campos da instrucao
