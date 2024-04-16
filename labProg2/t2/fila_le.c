@@ -6,7 +6,7 @@
 
 #define MAX_ELEM 1000
 
-// comando para compilar e rodar: $gcc -Wall -o cobra cobra.c fila.c tela.c tecla.c && ./cobra
+// comando para compilar e rodar: $gcc -Wall -o cobra cobra.c fila_le.c tela.c tecla.c && ./cobra
 
 struct _fila {
   int n_elem;
