@@ -20,21 +20,6 @@ int main(int argc, char const *argv[])
         imprime_fila(f);
     } while (*x != -1);
 
-    // int *x = (int*) malloc(sizeof(int));
-    // int *y = (int*) malloc(sizeof(int));
-    // int *z = (int*) malloc(sizeof(int));
-
-    // *x = 10;
-    // *y = 20;
-    // *z = 30;
-
-    // fila_insere(f, x);
-    // imprime_fila(f);
-    // fila_insere(f, y);
-    // imprime_fila(f);
-    // fila_insere(f, z);
-    // imprime_fila(f);
-
     fila_destroi(f);
     return 0;
 }
