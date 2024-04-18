@@ -90,19 +90,19 @@ void fila_remove(Fila self, void *pdado) {
         assert(ptr != NULL);
 
         memmove(listaAux, ptr, self->n_elem * self->tam_dado);
-      } else {
+      } else{
         ptr = calcula_ponteiro(self, 0);
         assert(ptr != NULL);
 
-        memmove(listaAux, ptr, self->tam_dado * (novoMax - self->prim));
-        memmove(listaAux + (self->tam_dado * (novoMax - self->prim)), self->espaco, self->tam_dado * (ult + 1));
+        memmove(listaAux, ptr, self->tam_dado * (self->max - self->prim));
+        memmove(listaAux + (self->tam_dado * (self->max - self->prim)), self->espaco, self->tam_dado * (ult + 1));
       }
 
       free(self->espaco);
       self->espaco = listaAux;
       self->prim = 0;
       self->max = novoMax;
-  }
+    }
   }
 }
 
