@@ -40,7 +40,7 @@ struct _lista {
 lista_t* lista_insere( lista_t* l, void* dado )
 {
 	/* TODO fazer inserção nessa aula */
-	lista_t* aux = (list_t*) malloc(sizeof(lista_t));
+	lista_t* aux = (lista_t*) malloc(sizeof(lista_t));
 	aux->dado = dado;
 	aux->prox = l;
 	aux->ant = NULL;
@@ -49,9 +49,8 @@ lista_t* lista_insere( lista_t* l, void* dado )
 		l->ant = aux;
 	}
 
-	return l;
+	return aux;
 }
-
 
 /* remove da lista o elemento que contem 'dado'.
    Se lista ficar vazia, retorna NULL.
@@ -60,16 +59,36 @@ lista_t* lista_insere( lista_t* l, void* dado )
 */
 lista_t* lista_remove( lista_t* l, void* dado, int (*f)(void*, void*)  )
 {
-	lista_t* aux = busca(l, dado);
+	lista_t* aux = l;
 
-	if (p == NULL) {
+	while( lista_vazia(aux) == 0 ){
+		if( f(aux->dado, dado) == 1 ) {
+			break;
+		}
+		aux = aux->prox;
+	}
+
+	if (aux == NULL) {
 		return l;
 	}
 
-	if (l == p) {
-		lst = aux->prox;
+	if (l == aux) {
+		l = aux->prox;
+	} else {
+		aux->ant->prox = aux->prox;
 	}
-	return NULL;
+
+	if (aux->prox != NULL) {
+		aux->prox->ant = aux->ant;
+	}
+
+	free(aux);
+
+	if(lista_vazia(l)) {
+		return NULL;
+	}
+
+	return l;
 }
 
 /* libera a memória de cada nó da lista.
@@ -78,6 +97,12 @@ lista_t* lista_remove( lista_t* l, void* dado, int (*f)(void*, void*)  )
 void lista_destroi( lista_t* l )
 {
 	/* TODO libera toda a lista */
+	lista_t* aux = l;
+	while (aux != NULL) {
+		lista_t* aux2 = aux->prox;
+		free(aux);
+		aux = aux2;
+	}
 }
 
 
