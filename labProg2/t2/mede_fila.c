@@ -181,9 +181,9 @@ int main(int argc, char *argv[]) {
   Fila f = fila_cria(tam_dado);
   assert(f != NULL);
   imprime_medidas("criacao");
-  faz_operacoes(f, 100000, 90, 10000);
+  faz_operacoes(f, 1000000, 90, 10000);
   imprime_medidas("100000 90");
-  faz_operacoes(f, 100000, 10, 10000);
+  faz_operacoes(f, 1000000, 10, 10000);
   imprime_medidas("100000 10");
   fila_destroi(f);
   imprime_medidas("fim");
