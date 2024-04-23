@@ -63,10 +63,34 @@ bool fila_vazia(Fila self) { return self->n_elem == 0; }
 
 bool fila_cheia(Fila self) { return self->n_elem == self->max; }
 
+static void* fila_diminui(Fila self, int flag) {
+  int ult = (self->prim + self->n_elem - 1) % self->max;
+  int novoMax = self->max / 2;
+
+  void *ptr = calcula_ponteiro(self, 0);
+  assert(ptr != NULL);
+
+  void *listaAux = malloc(novoMax * self->tam_dado);
+  assert(listaAux != NULL);
+  
+  switch(flag) {
+    case 1:
+      memmove(listaAux, ptr, self->n_elem * self->tam_dado);
+      break;
+    case 2:
+      memmove(listaAux, ptr, self->tam_dado * (self->max - self->prim));
+      memmove(listaAux + (self->tam_dado * (self->max - self->prim)), self->espaco, self->tam_dado * (ult + 1));
+      break;
+  }
+
+  self->prim = 0;
+  self->max = novoMax;
+
+  return listaAux;
+}
+
 void fila_remove(Fila self, void *pdado) {
   assert(!fila_vazia(self));
-  
-  int ult = (self->prim + self->n_elem - 1) % self->max;
 
   void *ptr = calcula_ponteiro(self, 0);
   assert(ptr != NULL);
@@ -80,57 +104,48 @@ void fila_remove(Fila self, void *pdado) {
 
   if (!fila_vazia(self)) {
     if (self->n_elem < self->max / 3) {
-      int novoMax = self->max / 2;
-
-      void *listaAux = malloc(novoMax * self->tam_dado);
-      assert(listaAux != NULL);
-
-      if (ult > self->prim) {
-        ptr = calcula_ponteiro(self, 0);
-        assert(ptr != NULL);
-
-        memmove(listaAux, ptr, self->n_elem * self->tam_dado);
+      if ((self->prim + self->n_elem - 1) % self->max > self->prim) {
+        self->espaco = fila_diminui(self, 1);
       } else{
-        ptr = calcula_ponteiro(self, 0);
-        assert(ptr != NULL);
-
-        memmove(listaAux, ptr, self->tam_dado * (self->max - self->prim));
-        memmove(listaAux + (self->tam_dado * (self->max - self->prim)), self->espaco, self->tam_dado * (ult + 1));
+        self->espaco = fila_diminui(self, 1);
       }
-
-      free(self->espaco);
-      self->espaco = listaAux;
-      self->prim = 0;
-      self->max = novoMax;
     }
   }
 }
 
-void fila_insere(Fila self, void *pdado) {
-  if (fila_cheia(self)) {
-    int ult = (self->prim + self->n_elem - 1) % self->max;
-    int novoMax = self->max * 2;
+static void* fila_aumenta(Fila self, int flag) {
+  int ult = (self->prim + self->n_elem - 1) % self->max;
+  int novoMax = self->max * 2;
 
-    void *listaAux = malloc(novoMax * self->tam_dado);
-    assert(listaAux != NULL);
+  void *ptr1 = calcula_ponteiro(self, 0);
+  assert(ptr1 != NULL);
 
-    if (ult > self->prim) {
-      void *ptr1 = calcula_ponteiro(self, 0);
-      assert(ptr1 != NULL);
+  void *listaAux = malloc(novoMax * self->tam_dado);
+  assert(listaAux != NULL);
 
+  switch(flag) {
+    case 1:
       memmove(listaAux, ptr1, self->n_elem * self->tam_dado);
-    } else {
-      void *ptr1 = calcula_ponteiro(self, 0);
-      assert(ptr1 != NULL);
-
+      break;
+    case 2:
       memmove(listaAux, ptr1, self->tam_dado * (self->max - self->prim));
       memmove(listaAux + (self->tam_dado * (self->max - self->prim)), self->espaco, self->tam_dado * (ult + 1));
-    }
+      break;
+  }
 
-    free(self->espaco);
-    self->espaco = listaAux;
-    self->prim = 0;
-    self->max = novoMax;
+  self->prim = 0;
+  self->max = novoMax;
+
+  return listaAux;
+}
+
+void fila_insere(Fila self, void *pdado) {
+  if (fila_cheia(self)) {
+    if ((self->prim + self->n_elem - 1) % self->max > self->prim) {
+      self->espaco = fila_aumenta(self, 1);
+    } else {
+      self->espaco = fila_aumenta(self, 2);
+    }
   }
 
   assert(!fila_cheia(self));
