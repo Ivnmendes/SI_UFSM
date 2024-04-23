@@ -4,8 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define MAX_ELEM 1000
-
 // comando para compilar e rodar: $gcc -Wall -o cobra cobra.c fila_le.c tela.c tecla.c && ./cobra
 
 typedef struct _nodo nodo;
@@ -58,7 +56,7 @@ static nodo *fila_nodo_pos(Fila self, int pos) {
   return no;
 }
 
-// procura o dado na posicao pos da fila
+// procura o dado na posicao pos da fila (adaptacao da *calcula_ponteiro())
 static void *encontra_dado(Fila self, int pos)
 {
   // TODO: suporte a pos negativa
@@ -90,20 +88,23 @@ static nodo *cria_nodo(Fila self, void *pdado, nodo *prox) {
 void fila_remove(Fila self, void *pdado) {
   assert(!fila_vazia(self));
 
-  if (pdado != NULL) { //copia o dado apenas se o ponteiro que ira receber ele nao for NULL (nao utilizado no jogo)
+  if (pdado != NULL) {
     memmove(pdado, self->prim->dado, self->tam_dado);
   }
 
   free(self->prim->dado);
+  nodo *aux = self->prim;
   self->n_elem--;
 
   if (self->n_elem == 0) {
     self->prim = NULL;
     self->ult = NULL;
   } else {
-    self->ult->prox = self->prim->prox;
-    self->prim = self->prim->prox;
+    self->ult->prox = aux->prox;
+    self->prim = aux->prox;
   }
+
+  free(aux);
 }
 
 void fila_insere(Fila self, void *pdado) {
