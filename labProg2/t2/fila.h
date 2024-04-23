@@ -37,7 +37,6 @@ void fila_inicia_percurso(Fila self, int pos_inicial);
 // retorna true caso positivo, false caso o percurso tenha terminado
 bool fila_proximo(Fila self, void *pdado);
 
-//remover dps
 void imprime_fila(Fila self);
 
 #endif //_FILA_H_

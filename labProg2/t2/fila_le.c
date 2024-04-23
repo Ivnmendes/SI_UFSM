@@ -51,15 +51,15 @@ void fila_destroi(Fila self) {
 static nodo *fila_nodo_pos(Fila self, int pos) {
   nodo *no = self->prim;
   int p = 0;
-  while(no != NULL && p < pos) {
+  while(p < pos) {
     no = no->prox;
     p++;
   }
   return no;
 }
 
-// calcula o valor do ponteiro para o elemento na posição pos da fila
-static void *calcula_ponteiro(Fila self, int pos)
+// procura o dado na posicao pos da fila
+static void *encontra_dado(Fila self, int pos)
 {
   // TODO: suporte a pos negativa
   if (pos < 0) {
@@ -67,9 +67,6 @@ static void *calcula_ponteiro(Fila self, int pos)
   }
 
   if (pos < 0 || pos >= self->n_elem) return NULL;
-  // calcula a posição convertendo para char *, porque dá para somar em
-  //   bytes. tem que fazer essa conversão porque não conhecemos o tipo
-  //   do dado do usuário, só o tamanho.
   
   nodo *noNaPos = fila_nodo_pos(self, pos);
   return noNaPos->dado;
@@ -80,40 +77,44 @@ bool fila_vazia(Fila self) { return self->prim == NULL; }
 static nodo *cria_nodo(Fila self, void *pdado, nodo *prox) {
   nodo *no = malloc(sizeof *no);
   assert(no != NULL);
-  //no->dado = pdado;
+
   no->dado = malloc(self->tam_dado);
   assert(no->dado != NULL);
+  
   memmove(no->dado, pdado, self->tam_dado);
+  
   no->prox = prox;
   return no;
 }
 
 void fila_remove(Fila self, void *pdado) {
   assert(!fila_vazia(self));
-  memmove(pdado, self->prim->dado, self->tam_dado);
-  self->n_elem--;
+
+  if (pdado != NULL) { //copia o dado apenas se o ponteiro que ira receber ele nao for NULL (nao utilizado no jogo)
+    memmove(pdado, self->prim->dado, self->tam_dado);
+  }
+
   free(self->prim->dado);
-  free(self->prim);
+  self->n_elem--;
+
   if (self->n_elem == 0) {
     self->prim = NULL;
     self->ult = NULL;
   } else {
     self->ult->prox = self->prim->prox;
-    self->prim = self->ult->prox;
+    self->prim = self->prim->prox;
   }
 }
 
 void fila_insere(Fila self, void *pdado) {
+  nodo *novo = cria_nodo(self, pdado, self->prim);
+  
   if (fila_vazia(self)) {
-    nodo *novo = cria_nodo(self, pdado, self->prim);
     self->prim = novo;
     self->ult = novo;
   } else {
-    nodo *novo = cria_nodo(self, pdado, self->prim);
-
     self->ult->prox = novo;
     self->ult = novo;
-    self->ult->prox = self->prim;
   }
 
   self->n_elem++;
@@ -127,7 +128,7 @@ void fila_inicia_percurso(Fila self, int pos_inicial)
 
 bool fila_proximo(Fila self, void *pdado)
 {
-  void *ptr = calcula_ponteiro(self, self->pos_percurso);
+  void *ptr = encontra_dado(self, self->pos_percurso);
   if (ptr == NULL) return false;
   memmove(pdado, ptr, self->tam_dado);
   if (self->pos_percurso < 0) {
@@ -138,12 +139,13 @@ bool fila_proximo(Fila self, void *pdado)
   return true;
 }
 
-//remover depois
 void imprime_fila(Fila self) {
   printf("[ ");
   int cont = 0;
   for(nodo *no = self->prim; cont < self->n_elem; cont++, no = no->prox) {
-    printf("%d ", * ((int*) ((char*) no->dado)));
+    printf("%d ", *((int*) (no->dado)));
   }
   printf("]\n");
+
+  printf("n_elem: %d\n", self->n_elem);
 }

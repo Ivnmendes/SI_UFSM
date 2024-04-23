@@ -140,13 +140,12 @@ void fila_insere(Fila self, void *pdado) {
   memmove(ptr, pdado, self->tam_dado);
 }
 
-//remover depois
 void imprime_fila(Fila self) {
   int cont, i;
 
   printf("[ ");
   for(cont = 0, i = self->prim; cont < self->n_elem; cont++) {
-    printf("%d ", * ((int*) ((char*) self->espaco + i * self->tam_dado)));
+    printf("%d ", *((int*) (self->espaco + i * self->tam_dado)));
 
     i = (i + 1) % self->max;
   }
