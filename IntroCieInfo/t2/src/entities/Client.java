@@ -1,6 +1,4 @@
-package Entities;
-
-import javax.swing.text.MaskFormatter;
+package entities;
 
 public class Client {
     private String nome;
@@ -10,23 +8,11 @@ public class Client {
     private String identificador;
 
     public Client(String nome, String endereco, String cidade, String telefone, String identificador) {
-
         this.nome = nome;
         this.endereco = endereco;
         this.cidade = cidade;
         this.telefone = telefone;
-
-        try {
-            MaskFormatter mascara;
-            String fmt = (identificador.length() == 11) ? "###.###.###-##" : "##.###.###/####-##";
-            mascara = new MaskFormatter(fmt);
-
-            mascara.setMask(identificador);
-            this.identificador = identificador;
-        }
-        catch (Exception e) {
-            throw new RuntimeException("Erro ao formatar identificador: " + e.getMessage());
-        }
+        this.identificador = identificador;
     }
 
     public String getNome() {

@@ -1,7 +1,7 @@
 package application;
 
-import Entities.Client;
-import Entities.Product;
+import entities.Client;
+import entities.Product;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public abstract class CreateFile {
     public static boolean criaArquivo(String tipoNota, String numeroNotaFiscal, String dataNotaFiscal, Client cliente, ArrayList<Product> listaProdutos) {
-        String path = System.getProperty("user.dir") + "/src/arquivos/notaEDI.txt"; // Essa parte só roda no linux a principio, nao testei no windows
+        String path = System.getProperty("user.dir") + "/src/arquivos/notaEDI.txt";
 
         Client fornecedor = new Client("Fornecedor", "Rua do Fornecedor", "Cidade do Fornecedor", "5533334444", "00101010000011");
 
