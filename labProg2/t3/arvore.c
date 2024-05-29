@@ -130,6 +130,18 @@ bool removeElem(arv_t** self, char* dado) {
     return removido;
 }
 
+void destroiArvore(arv_t* self) {
+    if (estaVazia) {
+        return;
+    }
+
+    destroiArvore(self->esq);
+    destroiArvore(self->dir);
+    
+    free(self->val);
+    free(self);
+}
+
 // ambas as funções de impressão são código de ia usadas para teste
 
 void imprimeArvore(arv_t* self, int espaco, int alturaArvore) { 
