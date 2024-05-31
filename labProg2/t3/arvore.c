@@ -131,7 +131,7 @@ bool removeElem(arv_t** self, char* dado) {
 }
 
 void destroiArvore(arv_t* self) {
-    if (estaVazia) {
+    if (estaVazia(self)) {
         return;
     }
 

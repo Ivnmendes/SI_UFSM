@@ -14,6 +14,8 @@ bool estaEquilibrado(arv_t* self); //Verifica se a árvore está equilibrada
 
 arv_t* insereElem(arv_t* self, char* dado); //Insere um elemento na árvore
 
+void destroiArvore(arv_t* self); //Libera a memoria alocada para cada no
+
 bool removeElem(arv_t** self, char* dado); //Remove um elemento, retorna false caso nao encontre nenhum e true caso seja removido
 
 // Imprime a árvore de maneira visual e ordenada em linha, respectivamente
