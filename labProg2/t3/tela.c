@@ -1,4 +1,4 @@
-#define _POSIX_C_SOURCE 199309L
+#define _POSIX_C_SOURCE 199309L // ivan: Nao consegui compilar no vscode usando a funcao de relogio sem acrescentar essa linha, no terminal funciona normal
 #include "tela.h"
 
 // implementado usando

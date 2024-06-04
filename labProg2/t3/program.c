@@ -1,16 +1,17 @@
-#define _POSIX_C_SOURCE 199309L
-#include <stdio.h>
+// comando para compilar: gcc -Wall -o arvore.o arvore.c program.c sorteioPalavras.c tela.c tecla.c interface.c tamTela.h estado.h
 #include <assert.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
 #include "arvore.h"
+#include "interface.h"
 #include "sorteioPalavras.h"
 #include "tecla.h"
 #include "tela.h"
-#include "interface.h"
+
 #include "tamTela.h"
 #include "estado.h"
 
@@ -42,7 +43,6 @@ void testeArvore() {
 }
 
 bool iniciaJogo(estado* e) {
-    tela_ini();
     tecla_ini();
 
     e->pontos = 0;
@@ -68,14 +68,21 @@ bool iniciaJogo(estado* e) {
     e->tempoInicial = tela_relogio();
 
     e->equilibrada = true;
+
+    e->estado = normal;
     return true;
 }
 
 void finalizaJogo(estado* e) {
     destroiArvore(e->arvore);
     liberaSilabas(e->silabas);
+    if(e->palavraAtual != NULL) {
+        free(e->palavraAtual);
+    }
+    if(e->palavraDoComputador != NULL) {
+        free(e->palavraDoComputador);
+    }
     tecla_fim();
-    tela_fim();
 }
 
 void leituraDeTecla(estado* e) {
@@ -113,31 +120,48 @@ void leituraDeTecla(estado* e) {
     }
 }
 
+void inserePalavra(estado* e) {
+    if(e->palavraDoComputador == NULL) {
+        sorteiaPalavra(&e->palavraDoComputador, e->silabas);
+        e->tempoInsercao = tela_relogio();
+        e->tempoSorteado = rand() % 4 + 1; //Garante que o tempo mínimo é de 1 segundo
+    } else if (tela_relogio() - e->tempoInsercao >= e->tempoSorteado) {
+        e->arvore = insereElem(e->arvore, e->palavraDoComputador);
+        e->equilibrada = estaEquilibrado(e->arvore);
+
+        free(e->palavraDoComputador);
+        e->palavraDoComputador = NULL;
+        e->tempoInsercao = 0;
+        e->tempoSorteado = 0;
+    }
+}
+
+typedef enum {jogo, historico, sair} modoJogo;
+
 int main() {
     srand(time(NULL));
+    tela_ini();
     estado jogo;
-    int tempoInsercao;
-    int tempoSorteado;
     iniciaJogo(&jogo);
 
     while (jogo.equilibrada) {
-        leituraDeTecla(&jogo);
-        if(jogo.palavraDoComputador == NULL) {
-            sorteiaPalavra(&jogo.palavraDoComputador, jogo.silabas);
-            tempoInsercao = tela_relogio();
-            tempoSorteado = rand() % 4 + 1; //Garante que o tempo mínimo é de 5 segundos
-        } else if (tela_relogio() - tempoInsercao >= tempoSorteado) {
-            jogo.arvore = insereElem(jogo.arvore, jogo.palavraDoComputador);
-            jogo.equilibrada = estaEquilibrado(jogo.arvore);
-            free(jogo.palavraDoComputador);
-            jogo.palavraDoComputador = NULL;
-            tempoInsercao = 0;
-            tempoSorteado = 0;
+        switch(jogo.estado) {
+            case normal:
+                leituraDeTecla(&jogo);
+                inserePalavra(&jogo);        
+                imprimeJogo(jogo);
+                break;
+            case desequilibrado:
+                break;
+            case parado:
+                break;
+            default:
+                break;
         }
-        imprimeJogo(jogo);
     }
-
     finalizaJogo(&jogo);
 
+    tela_fim();
+    printf("Finalizado\n");
     return 0;
 }

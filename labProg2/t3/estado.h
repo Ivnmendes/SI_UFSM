@@ -11,8 +11,11 @@ typedef struct {
     char* silabas[185];
     char* palavraAtual;
     char* palavraDoComputador;
+    double tempoInsercao;
+    double tempoSorteado;
     bool equilibrada;
     tamTela tamanhoTela;
+    enum {normal, desequilibrado, parado} estado;
 } estado;
 
 #endif
