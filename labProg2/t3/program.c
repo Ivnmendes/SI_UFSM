@@ -1,4 +1,4 @@
-// comando para compilar: gcc -Wall -o arvore.o arvore.c program.c sorteioPalavras.c tela.c tecla.c interface.c tamTela.h estado.h
+// comando para compilar: gcc -Wall -o arvore.o arvore.c program.c sorteioPalavras.c telag.c interface.c tamTela.h estado.h -lallegro_font -lallegro_color -lallegro_ttf -lallegro_primitives -lallegro
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -9,8 +9,9 @@
 #include "arvore.h"
 #include "interface.h"
 #include "sorteioPalavras.h"
-#include "tecla.h"
-#include "tela.h"
+//#include "tecla.h"
+//#include "tela.h"
+#include "telag.h"
 
 #include "tamTela.h"
 #include "estado.h"
@@ -42,9 +43,10 @@ void testeArvore() {
     printInOrder(arvore);
 }
 
-bool iniciaJogo(estado* e) {
-    tecla_ini();
+#define LARGURA_TELA 1280
+#define ALTURA_TELA 720
 
+bool iniciaJogo(estado* e) {
     e->pontos = 0;
     e->arvore = cria_arv_vazia();
     if(!leArquivoSilabas(e->silabas)) {
@@ -62,8 +64,8 @@ bool iniciaJogo(estado* e) {
 
     e->palavraDoComputador = NULL;
 
-    e->tamanhoTela.lin = tela_nlin();
-    e->tamanhoTela.col = tela_ncol();
+    e->tamanhoTela.larg = LARGURA_TELA;
+    e->tamanhoTela.alt = ALTURA_TELA;
 
     e->tempoInicial = tela_relogio();
 
@@ -82,12 +84,11 @@ void finalizaJogo(estado* e) {
     if(e->palavraDoComputador != NULL) {
         free(e->palavraDoComputador);
     }
-    tecla_fim();
 }
 
 void leituraDeTecla(estado* e) {
     char aux;
-    aux = tecla_le_char();
+    aux = tela_tecla();
     size_t tam = strlen(e->palavraAtual);
     if(aux >= 'a' && aux <= 'z') {
         e->palavraAtual = realloc(e->palavraAtual, tam + 2); //Aumenta a memoria alocada para incluir a nova letra e o \0
@@ -140,7 +141,7 @@ typedef enum {jogo, historico, sair} modoJogo;
 
 int main() {
     srand(time(NULL));
-    tela_ini();
+    tela_inicio(LARGURA_TELA, ALTURA_TELA, "jogo da arvore");
     estado jogo;
     iniciaJogo(&jogo);
 
@@ -162,6 +163,5 @@ int main() {
     finalizaJogo(&jogo);
 
     tela_fim();
-    printf("Finalizado\n");
     return 0;
 }
