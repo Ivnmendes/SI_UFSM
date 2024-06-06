@@ -68,7 +68,9 @@ void tela_texto_esq(float x, float y, int tam, int c, char t[]);
 // x, y coordenadas do inicio do texto, tam tamanho das letras, c cor, t texto
 void tela_texto_dir(float x, float y, int tam, int c, char t[]);
 
-
+//ivan: inseri as funcoes para obter o tamanho da tela
+int altura_tela();
+int largura_tela();
 
 // CORES
 

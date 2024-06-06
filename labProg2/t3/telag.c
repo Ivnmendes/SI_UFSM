@@ -17,13 +17,14 @@ static void cai_fora(char *msg)
   assert(cai-fora);
 }
 
+static ALLEGRO_DISPLAY *janela; //
 static void tela_inicializa_janela(float l, float a, char n[])
 {
   // pede para tentar linhas mais suaves (multisampling)
   al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
   al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
   // cria uma janela
-  ALLEGRO_DISPLAY *janela;
+  //ALLEGRO_DISPLAY *janela; //
   janela = al_create_display(l, a);
   if (janela == NULL) cai_fora("problema na criação de janela do allegro");
   // esconde o cursor do mouse
@@ -145,7 +146,7 @@ static void tela_prepara_fonte(int tam)
 
   // carrega uma fonte, para poder escrever na tela
   //fonte = al_load_font("DejaVuSans.ttf", tam, 0);
-  fonte = al_create_builtin_font();
+  fonte = al_create_builtin_font();//
   if (fonte == NULL) {
     al_uninstall_system();
     printf("\n\nERRO FATAL\n");
@@ -174,6 +175,14 @@ void tela_texto_dir(float x, float y, int tam, int c, char t[])
   al_draw_text(fonte, cores[c], x, y, ALLEGRO_ALIGN_LEFT, t);
 }
 
+
+//ivan: inseri as funcoes para obter o tamanho da tela
+int altura_tela() {
+  return al_get_display_height(janela);
+}
+int largura_tela() {
+  return al_get_display_width(janela);
+}
 void tela_rato_pos(int *px, int *py)
 {
   ALLEGRO_MOUSE_STATE rato;

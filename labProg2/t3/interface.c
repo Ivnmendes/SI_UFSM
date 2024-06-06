@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include <allegro5/allegro.h>
+#include <allegro5/allegro_font.h> //
 
 #include "arvore.h"
 #include "interface.h"
@@ -12,28 +13,30 @@
 
 
 void imprimeArvoreTela(estado e) {
-//    tela_lincol(1, 1);
     imprimeArvore(e.arvore, 0, altura(e.arvore));
 }
 
 void imprimePalavraDigitada(estado e) {
-    tela_texto(100, e.tamanhoTela.alt, 80, preto, "Palavra digitada:");
+    char aux[] = "Palavra digitada:";
+    tela_texto(e.tamanhoTela.larg - (e.tamanhoTela.larg * 0.90), e.tamanhoTela.alt - (e.tamanhoTela.alt / 25), 80, preto, aux);
+
     if (e.palavraAtual[0] != '\0') {
-        tela_texto_dir(strlen(e.palavraAtual) ,e.tamanhoTela.alt, 80, preto, e.palavraAtual); //nao ta funcionando ainda
+        tela_texto_dir(e.tamanhoTela.larg - (e.tamanhoTela.larg * 0.90) + strlen(aux) + 55, e.tamanhoTela.alt - (e.tamanhoTela.alt / 12), 80, vermelho, e.palavraAtual);
     }
 }
 
 void imprimePalavraDoComputador(estado e) {
-    tela_texto(e.tamanhoTela.larg - 150, e.tamanhoTela.alt, 80, preto, "Palavra futura:");
+    char aux[] = "Palavra futura:";
+    tela_texto(e.tamanhoTela.larg * 0.90, e.tamanhoTela.alt - (e.tamanhoTela.alt / 25), 80, preto, aux);
     if (e.palavraDoComputador != NULL) {
-        tela_texto(e.tamanhoTela.larg - strlen(e.palavraDoComputador) - 50, e.tamanhoTela.alt, 80, preto, e.palavraDoComputador);
+        tela_texto(e.tamanhoTela.larg * 0.90 + strlen(aux) + 85, e.tamanhoTela.alt - (e.tamanhoTela.alt / 25), 80, vermelho, e.palavraDoComputador);
     }
 }
 
 void imprimeTempoTranscorrido(estado e) {
     char aux[100];
     sprintf(aux, "%.0fs", tela_relogio() - e.tempoInicial);
-    tela_texto(e.tamanhoTela.larg/2, e.tamanhoTela.alt - 30, 80, preto, aux);
+    tela_texto(e.tamanhoTela.larg/2, e.tamanhoTela.alt - (e.tamanhoTela.alt / 25), 80, preto, aux);
 }
 
 void imprimePontuacao(estado e) {

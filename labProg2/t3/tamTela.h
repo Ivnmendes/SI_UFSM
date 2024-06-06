@@ -2,8 +2,8 @@
 #define TAM_TELA_H
 
 typedef struct {
-    int larg;
-    int alt;
+    float larg;
+    float alt;
 } tamTela;
 
 #endif

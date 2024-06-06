@@ -9,8 +9,6 @@
 #include "arvore.h"
 #include "interface.h"
 #include "sorteioPalavras.h"
-//#include "tecla.h"
-//#include "tela.h"
 #include "telag.h"
 
 #include "tamTela.h"
@@ -43,10 +41,7 @@ void testeArvore() {
     printInOrder(arvore);
 }
 
-#define LARGURA_TELA 1280
-#define ALTURA_TELA 720
-
-bool iniciaJogo(estado* e) {
+bool iniciaJogo(estado* e, tamTela t) {
     e->pontos = 0;
     e->arvore = cria_arv_vazia();
     if(!leArquivoSilabas(e->silabas)) {
@@ -64,8 +59,8 @@ bool iniciaJogo(estado* e) {
 
     e->palavraDoComputador = NULL;
 
-    e->tamanhoTela.larg = LARGURA_TELA;
-    e->tamanhoTela.alt = ALTURA_TELA;
+    e->tamanhoTela.larg = t.larg;
+    e->tamanhoTela.alt = t.alt;
 
     e->tempoInicial = tela_relogio();
 
@@ -90,7 +85,7 @@ void leituraDeTecla(estado* e) {
     char aux;
     aux = tela_tecla();
     size_t tam = strlen(e->palavraAtual);
-    if(aux >= 'a' && aux <= 'z') {
+    if(strlen(e->palavraAtual) < 15 && aux >= 'a' && aux <= 'z') { //strlen(x) < 15... testa se a palavra digitada ja e grande demais, evitando bugs visuais
         e->palavraAtual = realloc(e->palavraAtual, tam + 2); //Aumenta a memoria alocada para incluir a nova letra e o \0
         assert(e->palavraAtual != NULL);
         e->palavraAtual[tam] = aux;
@@ -137,31 +132,56 @@ void inserePalavra(estado* e) {
     }
 }
 
-typedef enum {jogo, historico, sair} modoJogo;
+void obtemTamanhoTela(tamTela* t) {
+    t->alt = 900;
+    t->larg = 1920;
+}
+
+typedef enum {menu, partida, historico, sair} modoJogo;
 
 int main() {
     srand(time(NULL));
-    tela_inicio(LARGURA_TELA, ALTURA_TELA, "jogo da arvore");
-    estado jogo;
-    iniciaJogo(&jogo);
+    tamTela tamanhoTela;
+    obtemTamanhoTela(&tamanhoTela);
+    tela_inicio(tamanhoTela.larg, tamanhoTela.alt, "jogo da arvore");
+    printf("altura: %d, largura: %d\n", altura_tela(), largura_tela());
+    goto fim;
+    modoJogo modoAtual = partida;
 
-    while (jogo.equilibrada) {
-        switch(jogo.estado) {
-            case normal:
-                leituraDeTecla(&jogo);
-                inserePalavra(&jogo);        
-                imprimeJogo(jogo);
-                break;
-            case desequilibrado:
-                break;
-            case parado:
-                break;
-            default:
-                break;
+    switch (modoAtual) {
+    case menu:
+        break;
+    case partida:
+        estado jogo;
+        iniciaJogo(&jogo, tamanhoTela);
+        while (jogo.equilibrada) {
+            switch(jogo.estado) {
+                case normal:
+                    leituraDeTecla(&jogo);
+                    inserePalavra(&jogo);        
+                    imprimeJogo(jogo);
+                    break;
+                case desequilibrado:
+                    break;
+                case parado:
+                    break;
+                default:
+                    break;
+            }
         }
+        finalizaJogo(&jogo);
+        break;
+    case historico:
+        break;
+    case sair:
+        break;
+    default:
+        printf("erro desconhecido!\n");
+        modoAtual = sair;
+        break;
     }
-    finalizaJogo(&jogo);
 
+    fim:
     tela_fim();
     return 0;
 }
