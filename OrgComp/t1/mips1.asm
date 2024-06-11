@@ -9,16 +9,16 @@
 # $s1: eb vetor instrucoes
 #
 #TODO:
-# ( ) .data			:
+# ( ) problema no acesso a pilha virtual
+# (x) .data				:	f
 # TIPO R
-	# ( ) ADD			:
-	# ( ) syscall			:
-	# ( ) JR			:
-	# ( ) ADDU			:
-	# ( ) MUL			:
+	# (x) ADD			:	ft
+	# (x) syscall			:	ft
+	# (x) JR			:	ft
+	# (x) ADDU			:	ft
 # TIPO J
-	# ( ) J				:
-	# ( ) JAL			:
+	# (x) J				:	ft
+	# (x) JAL			:	ft
 # TIPO I
 	# (x) ADDI			:	ft
 	# (x) ADDIU			:	ft
@@ -27,18 +27,26 @@
 	# (x) bne			:	ft
 	# (x) ori			:	ft
 	# (x) lui			:	ft
+# PSEUDOINSTRUCAO
+	# (x) MUL			:	ft
+	
+# |-------------|---------------|
+# |legenda	|	status	|
+# |-------------|---------------|
+# |	ft  	|falta testar	|
+# |	nf  	|nao funcionando|
+# |	f 	|funcionando	|
+# |-----------------------------|
 
-# legenda status
-	# ft = falta testar
-	# nf = nao funcionando
-	# f = funcionando
 .data
+	dataVirtual:		.space		1024				#.data virtual
 	buffer:			.space		4				#buffer para armazenar dados lidos
-	arq:			.asciiz		"trabalho_01-2024_1.bin"	#endereco do arquivo
+	arqBin:			.asciiz		"trabalho_01-2024_1.bin"	#endereco do arquivo onde estao as instrucoes
+	arqData:		.asciiz		"trabalh0_01-2024_1.dat"	#endereco do arquivo onde esta guardado o .data do programa
 	instrucoes:		.word		0				#numero de intrucoes guardadas no vetor
 	registradores:		.space		128				#vetor com registradores simulados, tentarei seguir a mesma lógica padrão (pos 31 do vetor e o registrador $ra)
 	#pcSimulado:		.word		0				#salva a posicao atual executada do vetor
-	pcSimulado:		.word		0x4000000
+	pcSimulado:		.word		0x00400000
 	pilhaVirtual:		.space		1024				#pilha virtual que o registrador $sp virtual ira utilizar
 .text
 
@@ -46,9 +54,10 @@
 
 	main:
 		jal iniciaRegistradores						#inicia os registradores virtuais em 0
-		jal leituraDeArquivo						#faz a leitura do arquivo
+		jal leituraDeArquivoData
+		jal leituraDeArquivoBin						#faz a leitura do arquivo
 		jal executaPrograma						#executa o programa a partir do vetor de instrucoes
-		jal imprimeVetor
+		#jal imprimeVetor
 	fim:
 		#finaliza programa
 		li $v0, 10
@@ -82,7 +91,7 @@ iniciaRegistradores:
 	iniciaRegistradoresLoop:
 		beq $t3, $zero, registradoresIniciados  			#se todos os registradores foram inicializados, sai do loop
     		sw $zero, 0($t2)  						#inicializa registrador com 0
-    		addi $t2, $t2, 4  						#avança para o próximo registrador
+    		addi $t2, $t2, 4  						#avanca para o proximo registrador
     		subi $t3, $t3, 1  						#decrementa o contador
     		j iniciaRegistradoresLoop
     	registradoresIniciados:
@@ -93,8 +102,10 @@ iniciaRegistradores:
     	addi $t0, $t0, 1024							#move o ponteiro para o final da pilha
     	sw $t0, 116($t1)							#carrega endereco de $sp, (testar depois, possivelmente endereco errado)
     	jr $ra
+
+
 #-------------------------------------------------------------------------------
-# procedimento leituraDeArquivo
+# procedimento leituraDeArquivoBin
 # ------------------------------------------------------------------------------
 # mapa da pilha
 # $sp+0		$ra	:	endereco de retorno
@@ -107,14 +118,14 @@ iniciaRegistradores:
 # Retorno do procedimento:
 # $v0
 #-------------------------------------------------------------------------------
-leituraDeArquivo:
+leituraDeArquivoBin:
 #prologo
 	addiu $sp, $sp, -4							#libera espaco na pilha
 	sw $ra, 0($sp)								#guarda $ra na pilha
 
 #corpo
 	#la $s1, instrucoes							#endereco base do vetor de instrucoes
-	la $a0, arq								#endereco do arquivo
+	la $a0, arqBin								#endereco do arquivo
 	li $a1, 0								#modo de leitura
 	li $a2, 0								#permissao, usado no modo leitura apenas
 	jal abrirArquivo
@@ -149,7 +160,51 @@ leituraDeArquivo:
 	addiu $sp, $sp, 4							#devolve espaco da pilha
 	
 	jr $ra
+
+#-------------------------------------------------------------------------------
+# procedimento leituraDeArquivoData
+# ------------------------------------------------------------------------------
+# mapa da pilha
+# $sp+0		$ra	:	endereco de retorno
+# 
+# 
+#-------------------------------------------------------------------------------
+# Argumentos
+# 
+# 
+# Retorno do procedimento:
+# $v0
+#-------------------------------------------------------------------------------
+leituraDeArquivoData:
+#prologo
+	addiu $sp, $sp, -4							#libera espaco na pilha
+	sw $ra, 0($sp)								#guarda $ra na pilha
+
+#corpo
+	#la $s1, instrucoes							#endereco base do vetor de instrucoes
+	la $a0, arqData								#endereco do arquivo
+	li $a1, 0								#modo de leitura
+	li $a2, 0								#permissao, usado no modo leitura apenas
+	jal abrirArquivo
 	
+	add $s2, $v0, $zero							#salva o descritor para nao ser perdido
+		
+	#inicia leitura
+	add $a0, $s2, $zero							#salva o descritor em $a0
+	la $a1, dataVirtual							#local onde a leitura vai ser salva
+	la $a2, 1024								#numero de bytes a serem lidos
+	jal lerData
+
+	#fecha o arquivo
+	add $a0, $s2, $zero							#descritor como parametro
+	jal fecharArquivo
+	
+#epilogo
+	lw $ra, 0($sp)								#carrega $ra da pilha
+	addiu $sp, $sp, 4							#devolve espaco da pilha
+	
+	jr $ra
+			
 #-------------------------------------------------------------------------------
 # procedimento abrirArquivo
 # ------------------------------------------------------------------------------
@@ -219,7 +274,7 @@ obtemTamanhoArquivo:
 	jal fecharArquivo
 	
 	#abre o arquivo novamente
-	la $a0, arq
+	la $a0, arqBin
 	li $a1, 0
 	li $a2, 0
 	jal abrirArquivo
@@ -276,7 +331,31 @@ lerInstrucao:
 	lw $ra, 0($sp)								#carrega $ra
 	addiu $sp, $sp, 4							#devolve o espaco da pilha
 	jr $ra
+
+#-------------------------------------------------------------------------------
+# procedimento lerData
+# ------------------------------------------------------------------------------
+# mapa da pilha
+# $sp+0		$ra	:	endereco de retorno
+# 
+# 
+#-------------------------------------------------------------------------------
+# Argumentos
+# $a0	:	descritor do arquivo
+# $a1	:	endereco para guardar a leitura
+# $a2	:	numero de bytes a serem lidos
+# Retorno do procedimento:
+# $v0	:	
+#
+#-------------------------------------------------------------------------------
+lerData:
+	li $v0, 14								#codigo leitura
+	syscall					
+
+	bltz $v0, erro
 	
+	jr $ra
+
 #-------------------------------------------------------------------------------
 # procedimento salvaInstrucao
 # ------------------------------------------------------------------------------
@@ -383,26 +462,37 @@ executaInstrucao:
 	andi $a1, $a1, 0x3F							#mascara para obter os bits menos significativos
 
 	#verifica tipo de opcode
+	#verifica se a instrucao e do tipo pseudo (por enquanto, intervalo entre 24 e 31)
+	li $t0, 24
+	li $t1, 31
+	ble $t0, $a1, nao_pseudo
+	ble $t1, $a1, tipo_pseudo
 	
+	nao_pseudo:
 	#verifica se a instrucao e tipo j (j = 2 e jal = 3)
 	li $t1, 2
-	beq $t0, $t1, tipo_j
+	beq $a1, $t1, tipo_j
 	li $t1, 3
-	beq $t0, $t1, tipo_j
+	beq $a1, $t1, tipo_j
 	
 	verifica_opcode:
 	li $t1, 0x00
 	beq $a1, $t1, tipo_r							#se opcode = 00 a instrucao e de tipo r
-	#se nao j e nem r, a instrucao e tipo i
+	#se nao j, r e nem pseudo, a instrucao e tipo i
 	tipo_i:
 	jal executaTipoI
 	j epilogo_executa_instrucao
+	
 	tipo_j:
 	jal executaTipoJ
 	j epilogo_executa_instrucao
+	
 	tipo_r:
 	jal executaTipoR
 	j epilogo_executa_instrucao
+	
+	tipo_pseudo:
+	jal executaTipoPseudo
 #epilogo:
 	epilogo_executa_instrucao:
 	lw $ra, 0($sp)
@@ -453,21 +543,27 @@ executaTipoI:
 	
 	jump_bne:
 	jal opBne
+	j epilogo_executa_tipo_i
 	
 	jump_addi:
 	jal opAddi
+	j epilogo_executa_tipo_i
 	
 	jump_addiu:
 	jal opAddiu
+	j epilogo_executa_tipo_i
 	
 	jump_ori:
 	jal opOri
+	j epilogo_executa_tipo_i
 	
 	jump_lui:
 	jal opLui
+	j epilogo_executa_tipo_i
 	
 	jump_lw:
 	jal opLw
+	j epilogo_executa_tipo_i
 	
 	jump_sw:
 	jal opSw
@@ -500,7 +596,7 @@ executaTipoJ:
 	move $t0, $a0								#coloca a instrucao em outro registrador
 #corpo
 	#extrai imm
-	andi $a0, $t0, 0x3FF FFFF						#faz um and entre a instrucao e 0011 1111 1111 1111 1111 1111 1111
+	andi $a0, $t0, 0x3FFFFFF						#faz um and entre a instrucao e 0011 1111 1111 1111 1111 1111 1111
 
 	beq $a1, 2, jump_j
 	beq $a1, 3, jump_jal
@@ -509,6 +605,7 @@ executaTipoJ:
 	
 	jump_j:
 	jal opJ
+	j epilogo_executa_tipo_j
 	
 	jump_jal:
 	jal opJal
@@ -529,6 +626,7 @@ executaTipoJ:
 #-------------------------------------------------------------------------------
 # Argumentos
 # $a0		:	instrucao a ser executada
+# $a1		:	opcode (necessario em alguns casos)
 # Retorno do procedimento:
 # 
 #
@@ -555,6 +653,7 @@ executaTipoR:
 	andi $t1, $t0, 0x3F							#faz um and entre a instrucao e 0011 1111
 	
 	beq $t1, 8, jump_jr
+	beq $t1, 12, jump_syscall
 	beq $t1, 32, jump_add
 	beq $t1, 33, jump_addu
 	
@@ -562,9 +661,15 @@ executaTipoR:
 	
 	jump_jr:
 	jal opJr
+	j epilogo_executa_tipo_r
+	
+	jump_syscall:
+	jal opSyscall
+	j epilogo_executa_tipo_r
 	
 	jump_add:
 	jal opAdd
+	j epilogo_executa_tipo_r
 	
 	jump_addu:
 	jal opAddu
@@ -576,6 +681,55 @@ executaTipoR:
 	
 	jr $ra
 
+#-------------------------------------------------------------------------------
+# procedimento executaTipoJ
+# ------------------------------------------------------------------------------
+# mapa da pilha
+#  $sp+0	$ra	:	endereco de retorno
+# 
+#-------------------------------------------------------------------------------
+# Argumentos
+# $a0		:	instrucao a ser executada
+# $a1		:	opcode
+# Retorno do procedimento:
+# 
+#
+#-------------------------------------------------------------------------------
+executaTipoPseudo:
+#prologo
+	addiu $sp, $sp, -4							#libera espaco na pilha
+	sw $ra, 0($sp)								#salva o endereco de retorno na pilha
+	move $t0, $a0								#coloca a instrucao em outro registrador
+#corpo
+	#extrai rs
+	srl $a0, $t0, 21							#transfere os bits referentes a rs para os 5 menos significativos
+	andi $a0, $a0, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	#extrai rt
+	srl $a1, $t0, 16							#transfere os bits referentes a rt para os 5 menos significativos
+	andi $a1, $a1, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	#extrai rd
+	srl $a2, $t0, 11							#transfere os bits referentes a rd para os 5 menos significativos
+	andi $a2, $a2, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	#extrai shamt	
+	srl $a3, $t0, 6								#transfere os bits referentes a shamt para os 5 menos significativos
+	andi $a3, $a3, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	#extrai o funct
+	andi $t1, $t0, 0x3F							#faz um and entre a instrucao e 0011 1111
+	
+	beq $t1, 2, jump_mul
+	
+	j epilogo_executa_tipo_pseudo
+	
+	jump_mul:
+	jal opMul
+	j epilogo_executa_tipo_pseudo
+	
+#epilogo
+	epilogo_executa_tipo_pseudo:
+	lw $ra, 0($sp)								#carrega o endereco de retorno da pilha
+	addiu $sp, $sp, 4							#restaura a pilha
+	
+	jr $ra
 #-------------------------------------------------------------------------------
 # procedimento fecharArquivo
 # ------------------------------------------------------------------------------
@@ -679,7 +833,7 @@ opAddi:
 	sll $a1, $a1, 2								#calcula deslocamento para achar rt no vetor de registradores
 	add $a1, $a1, $t0							#endereco desejado	
 	
-	addi $t1, $a0, $a2							#t1 recebe rs + imm
+	add $t1, $a0, $a2							#t1 recebe rs + imm
 	sw $t1, 0($a1)								#salva o valor no registrador rt
 	
 	jr $ra
@@ -713,7 +867,7 @@ opAddiu:
 	sll $a1, $a1, 2								#calcula deslocamento para achar rt no vetor de registradores
 	add $a1, $a1, $t0							#endereco desejado	
 	
-	addiu $t1, $a0, $a2							#t1 recebe rs + imm
+	addu $t1, $a0, $a2							#t1 recebe rs + imm
 	sw $t1, 0($a1)								#salva o valor no registrador rt
 	
 	jr $ra
@@ -747,7 +901,7 @@ opOri:
 	sll $a1, $a1, 2								#calcula deslocamento para achar rt no vetor de registradores
 	add $a1, $a1, $t0							#endereco desejado	
 	
-	ori $t1, $a0, $a2							#t1 recebe rs Or imm
+	or $t1, $a0, $a2							#t1 recebe rs Or imm
 	sw $t1, 0($a1)           						#salva o valor no registrador rt
 	
 	jr $ra
@@ -874,10 +1028,257 @@ opJ:
 	la $t0, pcSimulado
 	lw $t1, 0($t0)
 	
-	addiu $t1, $t1, 0x00400000
-	addiu $t1, $t1, 4
-	subu $t1, $a0, $t1
+	sll $a0, $a0, 2								#desloca imm em dois bits para a esquerda
 	
-	subiu $t1, $t1, 0x00400000
+	li $t2, 0xF0000000							#mascara para extrair os 4 bits mais significativos de pc virtual
+	and $t1, $t1, $t2
 	
-	div $t1, $t1, 4
+	or $t1, $t1, $a0							#concatena os 4 bits mais significativos de pc com os 26 bits deslocados de imm
+	subi $t1, $t1, 4							#gambiarra
+	sw $t1, 0($t0)								#salva o novo valor de pcSimulado
+	
+	jr $ra
+
+#-------------------------------------------------------------------------------
+# procedimento opJal
+# ------------------------------------------------------------------------------
+# mapa da pilha
+# 
+# 
+# 
+#-------------------------------------------------------------------------------
+# Argumentos
+# 
+# 
+# Retorno do procedimento:
+# 
+#-------------------------------------------------------------------------------
+opJal:
+	#carrega endereco e valor do pcSimulado
+	la $t0, pcSimulado
+	lw $t1, 0($t0)
+	
+	#carrega o registrador $ra
+	la $t3, registradores							#carrega vetor de registradores
+	li $t4, 31								#indice do registrador $ra
+	sll $t4, $t4, 2								#deslocamento
+	add $t3, $t4, $t3							#endereco desejado
+	
+	#salva o valor de pc em $ra
+	sw $t1, 0($t3)
+	
+	#seta pcSimulado como o endereco de desvio
+	sll $a0, $a0, 2								#desloca imm em dois bits para a esquerda
+	li $t2, 0xF0000000							#mascara para extrair os 4 bits mais significativos de pc virtual
+	and $t1, $t1, $t2
+	or $t1, $t1, $a0							#concatena os 4 bits mais significativos de pc com os 26 bits deslocados de imm
+	subi $t1, $t1, 4						#gambiarra
+	sw $t1, 0($t0)								#salva o novo valor de pcSimulado
+	
+	jr $ra
+	
+#-------------------------------------------------------------------------------#
+#					Tipo R					#
+#-------------------------------------------------------------------------------#
+
+#-------------------------------------------------------------------------------
+# procedimento opJr
+# ------------------------------------------------------------------------------
+# mapa da pilha
+# 
+# 
+# 
+#-------------------------------------------------------------------------------
+# Argumentos
+# $a0	:	rs
+# Retorno do procedimento:
+# 
+#-------------------------------------------------------------------------------
+opJr:
+	#carrega o vetor de registradores
+	la $t1, registradores
+	
+	sll $t0, $a0, 2								#calcula o deslocamento para chegar no registrador rs
+	add $t0, $t1, $t0							#endereco desejado
+	
+	lw $t2, 0($t0)								#carrega o valor contido em registradores[rs]
+	
+	#salva novo valor de pcSimulado
+	la $t0, pcSimulado
+	sw $t2, 0($t0)
+	
+	jr $ra
+	
+#-------------------------------------------------------------------------------
+# procedimento opAdd
+# ------------------------------------------------------------------------------
+# mapa da pilha
+# 
+# 
+# 
+#-------------------------------------------------------------------------------
+# Argumentos
+# $a0	:	rs
+# $a1	:	rt
+# $a2	:	rd
+# Retorno do procedimento:
+# 
+#-------------------------------------------------------------------------------
+opAdd:
+	#carrega o vetor de registradores
+	la $t1, registradores
+	
+	#carrega rs
+	sll $t0, $a0, 2								#calcula o deslocamento para chegar no registrador rs
+	add $t0, $t1, $t0							#endereco desejado
+	lw $t0, 0($t0)
+	
+	#carrega rt
+	sll $t2, $a1, 2								#calcula o deslocamento para chegar no registrador rt
+	add $t2, $t1, $t2							#endereco desejado
+	lw $t2, 0($t2)
+	
+	#carrega rd
+	sll $t3, $a2, 2								#calcula o deslocamento para chegar no registrador rd
+	add $t3, $t1, $t3							#endereco desejado
+	
+	add $t0, $t0, $t2							#t0 recebe rs + rt
+	sw $t0, 0($t3)								#salva no registrador rd
+	
+	jr $ra
+	
+#-------------------------------------------------------------------------------
+# procedimento opAddu
+# ------------------------------------------------------------------------------
+# mapa da pilha
+# 
+# 
+# 
+#-------------------------------------------------------------------------------
+# Argumentos
+# $a0	:	rs
+# $a1	:	rt
+# $a2	:	rd
+# Retorno do procedimento:
+# 
+#-------------------------------------------------------------------------------
+opAddu:
+	#carrega o vetor de registradores
+	la $t1, registradores
+	
+	#carrega rs
+	sll $t0, $a0, 2								#calcula o deslocamento para chegar no registrador rs
+	add $t0, $t1, $t0							#endereco desejado
+	lw $t0, 0($t0)
+	
+	#carrega rt
+	sll $t2, $a1, 2								#calcula o deslocamento para chegar no registrador rt
+	add $t2, $t1, $t2							#endereco desejado
+	lw $t2, 0($t2)
+	
+	#carrega rd
+	sll $t3, $a2, 2								#calcula o deslocamento para chegar no registrador rd
+	add $t3, $t1, $t3							#endereco desejado
+	
+	addu $t0, $t0, $t2							#t0 recebe rs + rt (sem sinal)
+	sw $t0, 0($t3)								#salva no registrador rd
+	
+	jr $ra
+
+#-------------------------------------------------------------------------------
+# procedimento opSyscall
+# ------------------------------------------------------------------------------
+# mapa da pilha
+# 
+# 
+# 
+#-------------------------------------------------------------------------------
+# Argumentos
+# 
+# Retorno do procedimento:
+# 
+#-------------------------------------------------------------------------------
+opSyscall:
+	#carrega o vetor de registradores
+	la $t0, registradores
+	
+	#carrega $v0 virtual
+	li $t1, 2
+	sll $t2, $t1, 2								#calcula o deslocamento para chegar no registrador $v0
+	add $t2, $t2, $t0							#endereco desejado
+	lw $v0, 0($t2)								#carrega valor de $v0 virtual (codigo de funcao do syscall)
+	
+	#carrega $v1 virtual
+	li $t1, 3
+	sll $t3, $t1, 2								#calcula o deslocamento para chegar no registrador $v1
+	add $t3, $t3, $t0							#endereco desejado
+	
+	#carrega $a0 virtual
+	li $t1, 4
+	sll $a0, $t1, 2								#calcula o deslocamento para chegar no registrador $a0
+	add $a0, $a0, $t0							#endereco desejado
+	lw $a0, 0($a0)
+	
+	#carrega $a1 virtual
+	li $t1, 5
+	sll $a1, $t1, 2								#calcula o deslocamento para chegar no registrador $a1
+	add $a1, $a1, $t0							#endereco desejado
+	lw $a1, 0($a1)
+	
+	#carrega $a2 virtual
+	li $t1, 6
+	sll $a2, $t1, 2								#calcula o deslocamento para chegar no registrador $a2
+	add $a2, $t0, $a2							#endereco desejado
+	lw $a2, 0($a2)
+	
+	#carrega $a3 virtual
+	li $t1, 7
+	sll $a3, $t1, 2								#calcula o deslocamento para chegar no registrador $a3
+	add $a3, $t0, $a3							#endereco desejado
+	lw $a3, 0($a3)
+	
+	syscall
+	
+	#guarda o retorno nos registradores virtuais
+	sw $v0, 0($t2)
+	sw $v1, 0($t3)
+	
+	jr $ra
+	
+#-------------------------------------------------------------------------------
+# procedimento opMul
+# ------------------------------------------------------------------------------
+# mapa da pilha
+# 
+# 
+# 
+#-------------------------------------------------------------------------------
+# Argumentos
+# $a0	:	rs
+# $a1	:	rt
+# $a2	:	rd
+# Retorno do procedimento:
+# 
+#-------------------------------------------------------------------------------
+opMul:
+	#carrega o vetor de registradores
+	la $t1, registradores
+	
+	#carrega rs
+	sll $t0, $a0, 2								#calcula o deslocamento para chegar no registrador rs
+	add $t0, $t1, $t0							#endereco desejado
+	lw $t0, 0($t0)
+	
+	#carrega rt
+	sll $t2, $a1, 2								#calcula o deslocamento para chegar no registrador rt
+	add $t2, $t1, $t2							#endereco desejado
+	lw $t2, 0($t2)
+	
+	#carrega rd
+	sll $t3, $a2, 2								#calcula o deslocamento para chegar no registrador rd
+	add $t3, $t1, $t3							#endereco desejado
+	
+	mul $t0, $t0, $t2							#t0 recebe os 32 bits menos significativos do produto entre rs e rt
+	sw $t0, 0($t3)								#salva no registrador rd
+	
+	jr $ra
