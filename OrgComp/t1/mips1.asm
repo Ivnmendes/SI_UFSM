@@ -41,13 +41,14 @@
 .data
 	dataVirtual:		.space		1024				#.data virtual
 	buffer:			.space		4				#buffer para armazenar dados lidos
+	pilhaVirtual:		.space		1024				#pilha virtual que o registrador $sp virtual ira utilizar
 	arqBin:			.asciiz		"trabalho_01-2024_1.bin"	#endereco do arquivo onde estao as instrucoes
 	arqData:		.asciiz		"trabalh0_01-2024_1.dat"	#endereco do arquivo onde esta guardado o .data do programa
 	instrucoes:		.word		0				#numero de intrucoes guardadas no vetor
 	registradores:		.space		128				#vetor com registradores simulados, tentarei seguir a mesma lógica padrão (pos 31 do vetor e o registrador $ra)
 	#pcSimulado:		.word		0				#salva a posicao atual executada do vetor
 	pcSimulado:		.word		0x00400000
-	pilhaVirtual:		.space		1024				#pilha virtual que o registrador $sp virtual ira utilizar
+	
 .text
 
 .globl main
@@ -519,15 +520,36 @@ executaTipoI:
 	sw $ra, 0($sp)								#salva o endereco de retorno na pilha
 	move $t0, $a0								#coloca a instrucao em outro registrador
 	move $t1, $a1								#coloca o opcode em t1
+	la $t2, registradores
 #corpo
 	#extrai rs
 	srl $a0, $t0, 21							#transfere os bits referentes a rs para os 5 menos significativos
-	andi $a0, $t0, 0x1F							#faz um and entre o valor obtido e 0001 1111
-
-	#extrai rs
+	andi $t3, $a0, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	#carrega rs
+	sll $a0, $t3, 2								#calcula o deslocamento para chegar no registrador rs
+	add $a0, $t2, $a0							#endereco desejado
+	
+	#testa se rs e o registrador $sp
+	bne $t3, 29, nao_sp_rs_i
+	
+	#ajusta rs para a pilha virtual
+	lw $a0, 0($a0)								#carrega o endereco da pilha
+	
+	nao_sp_rs_i:
+	#extrai rt
 	srl $a1, $t0, 16							#transfere os bits referentes a rt para os 5 menos significativos
-	andi $a1, $t0, 0x1F							#faz um and entre o valor obtido e 0001 1111
-
+	andi $t3, $a1, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	#carrega rt
+	sll $a1, $t3, 2								#calcula o deslocamento para chegar no registrador rt
+	add $a1, $t2, $a1							#endereco desejado
+	
+	#testa se rt e o registrador $sp
+	bne $t3, 29, nao_sp_rt_i
+	
+	#ajusta rs para a pilha virtual
+	lw $a1, 0($a1)								#carrega o endereco da pilha
+	
+	nao_sp_rt_i:
 	#extrai imm
 	andi $a2, $t0, 0xFFFF							#faz um and entre a instrucao e 1111 1111 1111 1111
 	
@@ -636,16 +658,51 @@ executaTipoR:
 	addiu $sp, $sp, -4							#libera espaco na pilha
 	sw $ra, 0($sp)								#salva o endereco de retorno na pilha
 	move $t0, $a0								#coloca a instrucao em outro registrador
+	la $t2, registradores
 #corpo
 	#extrai rs
 	srl $a0, $t0, 21							#transfere os bits referentes a rs para os 5 menos significativos
-	andi $a0, $a0, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	andi $t3, $a0, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	
+	#carrega rs
+	sll $a0, $t3, 2								#calcula o deslocamento para chegar no registrador rs
+	add $a0, $t2, $a0							#endereco desejado
+	
+	#testa se rs e o registrador $sp
+	bne $t3, 29, nao_sp_rs_r
+	
+	#ajusta rs para a pilha virtual
+	lw $a0, 0($a0)								#carrega o endereco da pilha
+	
+	nao_sp_rs_r:
 	#extrai rt
 	srl $a1, $t0, 16							#transfere os bits referentes a rt para os 5 menos significativos
-	andi $a1, $a1, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	andi $t3, $a1, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	#carrega rt
+	sll $a1, $t3, 2								#calcula o deslocamento para chegar no registrador rt
+	add $a1, $t2, $a1							#endereco desejado
+	
+	#testa se rt e o registrador $sp
+	bne $t3, 29, nao_sp_rt_r
+	
+	#ajusta rs para a pilha virtual
+	lw $a1, 0($a1)								#carrega o endereco da pilha
+	
+	nao_sp_rt_r:
 	#extrai rd
 	srl $a2, $t0, 11							#transfere os bits referentes a rd para os 5 menos significativos
-	andi $a2, $a2, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	andi $t3, $a2, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	#carrega rd
+	sll $a2, $t3, 2								#calcula o deslocamento para chegar no registrador rd
+	add $a2, $t2, $a2							#endereco desejado
+	
+	#testa se rd e o registrador $sp
+	bne $t3, 29, nao_sp_rd_r
+	
+	#ajusta rs para a pilha virtual
+	lw $a2, 0($a2)								#carrega o endereco da pilha
+	
+	nao_sp_rd_r:
 	#extrai shamt	
 	srl $a3, $t0, 6								#transfere os bits referentes a shamt para os 5 menos significativos
 	andi $a3, $a3, 0x1F							#faz um and entre o valor obtido e 0001 1111
@@ -777,25 +834,17 @@ fecharArquivo:
 # 
 #-------------------------------------------------------------------------------
 opBne:
-	#carrega endereco do vetor de reg virtuais e do pcSimulado
-	la $t0, registradores
+	#carrega endereco do pcSimulado
 	la $t1, pcSimulado
 	
-	#obtem registrador de rs
-	sll $a0, $a0, 2								#calcula deslocamento para achar rs no vetor de registradores
-	add $a0, $a0, $t0							#endereco desejado
 	lw $a0, 0($a0)								#carrega o valor salvo no registrador virtual
 	
-	#obtem registrador de rt
-	sll $a1, $a1, 2								#calcula deslocamento para achar rt no vetor de registradores
-	add $a1, $a1, $t0							#endereco desejado
 	lw $a1, 0($a1)								#carrega o valor salvo no registrador virtual
 	
 	#faz o teste
 	beq $a0, $a1, fim_teste_bne
-	#desvio = pc + 4 + (imm * 4)
+	#desvio = pc + 4 + (imm * 4), (obs: pc+4 e feito no looping de instrucoes
 	lw $t2, 0($t1)								#carrega o valor atual de pc
-	addiu $t2, $t2, 4							#pc+4
 	sll $a2, $a2, 2								#imm * 4
 	add $t2, $t2, $a2							#endereco desejado
 	
@@ -821,19 +870,18 @@ opBne:
 # 
 #-------------------------------------------------------------------------------
 opAddi:
-	#carrega endereco do vetor de reg virtuais
-	la $t0, registradores
+	#converte para numero com sinal
+	andi $t0, $a2, 0x8000							#mascara para ver qual o bit mais significativo
+	beq $t0, $zero, nao_convertido_addi					#se positivo, nao faz nada
 	
-	#obtem registrador de rs
-	sll $a0, $a0, 2								#calcula deslocamento para achar rs no vetor de registradores
-	add $a0, $a0, $t0							#endereco desejado
+	ori $a2, $a2, 0xFFFF0000						#transforma em numero com sinal
+	
+	nao_convertido_addi:
+	
 	lw $a0, 0($a0)								#carrega o valor salvo no registrador virtual
 	
-	#obtem registrador de rt
-	sll $a1, $a1, 2								#calcula deslocamento para achar rt no vetor de registradores
-	add $a1, $a1, $t0							#endereco desejado	
-	
 	add $t1, $a0, $a2							#t1 recebe rs + imm
+	
 	sw $t1, 0($a1)								#salva o valor no registrador rt
 	
 	jr $ra
@@ -855,17 +903,14 @@ opAddi:
 # 
 #-------------------------------------------------------------------------------
 opAddiu:
-	#carrega endereco do vetor de reg virtuais
-	la $t0, registradores
+	#converte para numero com sinal
+	andi $t0, $a2, 0x8000							#mascara para ver qual o bit mais significativo
+	beq $t0, $zero, nao_convertido_addiu					#se positivo, nao faz nada
 	
-	#obtem registrador de rs
-	sll $a0, $a0, 2								#calcula deslocamento para achar rs no vetor de registradores
-	add $a0, $a0, $t0							#endereco desejado
+	ori $a2, $a2, 0xFFFF0000						#transforma em numero com sinal
+	
+	nao_convertido_addiu:
 	lw $a0, 0($a0)								#carrega o valor salvo no registrador virtual
-	
-	#obtem registrador de rt
-	sll $a1, $a1, 2								#calcula deslocamento para achar rt no vetor de registradores
-	add $a1, $a1, $t0							#endereco desejado	
 	
 	addu $t1, $a0, $a2							#t1 recebe rs + imm
 	sw $t1, 0($a1)								#salva o valor no registrador rt
@@ -889,17 +934,7 @@ opAddiu:
 # 
 #-------------------------------------------------------------------------------
 opOri:
-	#carrega endereco do vetor de reg virtuais
-	la $t0, registradores
-	
-	#obtem registrador de rs
-	sll $a0, $a0, 2								#calcula deslocamento para achar rs no vetor de registradores
-	add $a0, $a0, $t0							#endereco desejado
 	lw $a0, 0($a0)								#carrega o valor salvo no registrador virtual
-	
-	#obtem registrador de rt
-	sll $a1, $a1, 2								#calcula deslocamento para achar rt no vetor de registradores
-	add $a1, $a1, $t0							#endereco desejado	
 	
 	or $t1, $a0, $a2							#t1 recebe rs Or imm
 	sw $t1, 0($a1)           						#salva o valor no registrador rt
@@ -923,13 +958,6 @@ opOri:
 # 
 #-------------------------------------------------------------------------------
 opLui:
-	#carrega endereco do vetor de reg virtuais
-	la $t0, registradores
-	
-	#obtem registrador de rt
-	sll $a1, $a1, 2								#calcula deslocamento para achar rt no vetor de registradores
-	add $a1, $a1, $t0							#endereco desejado	
-	
 	srl $t1, $a2, 16       							#move 16 bits para direita para zerar os 16 menos significativos
    	sll $t1, $t1, 16						 	#move os bits restantes novamente ao local desejado
 	sw $t1, 0($a1)           						#salva o valor no registrador rt
@@ -953,18 +981,9 @@ opLui:
 # 
 #-------------------------------------------------------------------------------
 opLw:
-	#carrega endereco do vetor de reg virtuais
-	la $t0, registradores
+	#lw $a0, 0($a0)
+	add $a0, $a0, $a2							#endereco desejado, soma do endereco do registrador e imm. ex: imm = 2 entao lw vai carregar o valor de 2($a0)
 	
-	#obtem registrador de rs
-	sll $a0, $a0, 2								#calcula deslocamento para achar rs no vetor de registradores
-	add $a0, $a0, $t0							#endereco desejado
-	add $a0, $a0, $a2							#endereco desejado, soma do endereco do registrar e imm. ex: imm = 2 entao lw vai carregar o valor de 2($a0)
-	
-	#obtem registrador de rt
-	sll $a1, $a1, 2								#calcula deslocamento para achar rt no vetor de registradores
-	add $a1, $a1, $t0							#endereco do registrador	
-
 	lw $t1, 0($a0)           						#carrega o valor no registrador rs
 	sw $t1, 0($a1)								#salva o valor em rt
 	
@@ -987,17 +1006,10 @@ opLw:
 # 
 #-------------------------------------------------------------------------------
 opSw:
-	#carrega endereco do vetor de reg virtuais
-	la $t0, registradores
-	
-	#obtem registrador de rs
-	sll $a0, $a0, 2								#calcula deslocamento para achar rs no vetor de registradores
-	add $a0, $a0, $t0							#endereco desejado
-	add $a0, $a0, $a2							#endereco desejado, soma do endereco do registrar e imm. ex. imm = 2 entao lw vai salvar em 2($a0)
+	#lw $a0, 0($a0)
+	add $a0, $a0, $a2							#endereco desejado, soma do endereco do registrador e imm. ex. imm = 2 entao lw vai salvar em 2($a0)
 	
 	#obtem registrador de rt
-	sll $a1, $a1, 2								#calcula deslocamento para achar rt no vetor de registradores
-	add $a1, $a1, $t0							#endereco do registrador	
 	lw $a1, 0($a1)								#carrega o valor salvo no registrador virtual
 	
 	sw $a1, 0($a0)           						#salva o valor no registrador rs
@@ -1095,13 +1107,7 @@ opJal:
 # 
 #-------------------------------------------------------------------------------
 opJr:
-	#carrega o vetor de registradores
-	la $t1, registradores
-	
-	sll $t0, $a0, 2								#calcula o deslocamento para chegar no registrador rs
-	add $t0, $t1, $t0							#endereco desejado
-	
-	lw $t2, 0($t0)								#carrega o valor contido em registradores[rs]
+	lw $t2, 0($a0)								#carrega o valor contido em registradores[rs]
 	
 	#salva novo valor de pcSimulado
 	la $t0, pcSimulado
@@ -1129,21 +1135,13 @@ opAdd:
 	la $t1, registradores
 	
 	#carrega rs
-	sll $t0, $a0, 2								#calcula o deslocamento para chegar no registrador rs
-	add $t0, $t1, $t0							#endereco desejado
-	lw $t0, 0($t0)
+	lw $t0, 0($a0)
 	
 	#carrega rt
-	sll $t2, $a1, 2								#calcula o deslocamento para chegar no registrador rt
-	add $t2, $t1, $t2							#endereco desejado
-	lw $t2, 0($t2)
-	
-	#carrega rd
-	sll $t3, $a2, 2								#calcula o deslocamento para chegar no registrador rd
-	add $t3, $t1, $t3							#endereco desejado
+	lw $t2, 0($a1)
 	
 	add $t0, $t0, $t2							#t0 recebe rs + rt
-	sw $t0, 0($t3)								#salva no registrador rd
+	sw $t0, 0($a2)								#salva no registrador rd
 	
 	jr $ra
 	
@@ -1167,21 +1165,13 @@ opAddu:
 	la $t1, registradores
 	
 	#carrega rs
-	sll $t0, $a0, 2								#calcula o deslocamento para chegar no registrador rs
-	add $t0, $t1, $t0							#endereco desejado
-	lw $t0, 0($t0)
+	lw $t0, 0($a0)
 	
 	#carrega rt
-	sll $t2, $a1, 2								#calcula o deslocamento para chegar no registrador rt
-	add $t2, $t1, $t2							#endereco desejado
-	lw $t2, 0($t2)
-	
-	#carrega rd
-	sll $t3, $a2, 2								#calcula o deslocamento para chegar no registrador rd
-	add $t3, $t1, $t3							#endereco desejado
+	lw $t2, 0($a1)
 	
 	addu $t0, $t0, $t2							#t0 recebe rs + rt (sem sinal)
-	sw $t0, 0($t3)								#salva no registrador rd
+	sw $t0, 0($a2)								#salva no registrador rd
 	
 	jr $ra
 
