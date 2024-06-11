@@ -17,14 +17,13 @@ static void cai_fora(char *msg)
   assert(cai-fora);
 }
 
-static ALLEGRO_DISPLAY *janela; //
 static void tela_inicializa_janela(float l, float a, char n[])
 {
   // pede para tentar linhas mais suaves (multisampling)
   al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
   al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
   // cria uma janela
-  //ALLEGRO_DISPLAY *janela; //
+  ALLEGRO_DISPLAY *janela;
   janela = al_create_display(l, a);
   if (janela == NULL) cai_fora("problema na criação de janela do allegro");
   // esconde o cursor do mouse
@@ -145,8 +144,8 @@ static void tela_prepara_fonte(int tam)
   }
 
   // carrega uma fonte, para poder escrever na tela
-  //fonte = al_load_font("DejaVuSans.ttf", tam, 0);
-  fonte = al_create_builtin_font();//
+  //fonte = al_create_builtin_font();
+  fonte = al_load_font("DejaVuSans.ttf", tam, 0);
   if (fonte == NULL) {
     al_uninstall_system();
     printf("\n\nERRO FATAL\n");
@@ -160,7 +159,7 @@ static void tela_prepara_fonte(int tam)
 void tela_texto(float x, float y, int tam, int c, char t[])
 {
   tela_prepara_fonte(tam);
-  al_draw_text(fonte, cores[c], x, y-tam/2, ALLEGRO_ALIGN_CENTRE, t);
+  al_draw_text(fonte, cores[c], x, y - tam / 2.0, ALLEGRO_ALIGN_CENTRE, t);
 }
 
 void tela_texto_esq(float x, float y, int tam, int c, char t[])
@@ -175,14 +174,18 @@ void tela_texto_dir(float x, float y, int tam, int c, char t[])
   al_draw_text(fonte, cores[c], x, y, ALLEGRO_ALIGN_LEFT, t);
 }
 
+void tela_retangulo_texto(float x, float y, int tam, char t[],
+                          float *px1, float *py1, float *px2, float *py2)
+{
+  tela_prepara_fonte(tam);
+  int rx, ry, rw, rh;
+  al_get_text_dimensions(fonte, t, &rx, &ry, &rw, &rh);
+  *px1 = x - rx - rw / 2.0;
+  *py1 = y - ry - 1;
+  *px2 = *px1 + rw;
+  *py2 = *py1 + rh;
+}
 
-//ivan: inseri as funcoes para obter o tamanho da tela
-int altura_tela() {
-  return al_get_display_height(janela);
-}
-int largura_tela() {
-  return al_get_display_width(janela);
-}
 void tela_rato_pos(int *px, int *py)
 {
   ALLEGRO_MOUSE_STATE rato;

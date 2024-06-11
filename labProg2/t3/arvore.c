@@ -6,12 +6,14 @@
 #include <math.h>
 
 #include "arvore.h"
+#include "telag.h"
 
 typedef struct _no no_t;
 struct _no {
     char* val;
     no_t* esq;
     no_t* dir;
+    int tamanhoNo;
 };
 
 
@@ -27,12 +29,16 @@ static arv_t* cria_no(char* dado) { // Cria um nó, alocando a memória necessá
     no->val = malloc(strlen(dado) * 1 + 1);
     assert(no->val != NULL);
     strcpy(no->val, dado);
-    
+
+    no->tamanhoNo = strlen(dado) + 4;
+
     no->esq = cria_arv_vazia();
     no->dir = cria_arv_vazia();
 
     return no;
 }
+
+int tamanhoDoNo(arv_t* self) { return self->tamanhoNo;}
 
 bool estaVazia(arv_t* self) { return self == NULL;}
 
@@ -62,7 +68,7 @@ bool estaEquilibrado(arv_t* self) {
     if(estaVazia(self)) {
         return true;
     }
-    if(abs(calculaFatorEquilibrioNo(self)) > 1) {
+    if(abs(calculaFatorEquilibrioNo(self)) > 10) {// mudar para 2 depois dos testes
         return false;
     }
 
@@ -142,35 +148,44 @@ void destroiArvore(arv_t* self) {
     free(self);
 }
 
-// ambas as funções de impressão são código de ia usadas para teste
-
-void imprimeArvore(arv_t* self, int espaco, int alturaArvore) { 
-    if (self == NULL) {
-        return;
-    }
-
-    // Aumenta a distância entre os níveis
-    espaco += alturaArvore;
-
-    // Processo de impressão do filho direito
-    imprimeArvore(self->dir, espaco, alturaArvore);
-
-    // Imprime o nó atual depois de um espaço apropriado
-    printf("\n");
-    for (int i = alturaArvore; i < espaco; i++) {
-        printf(" ");
-    }
-    printf("%s\n", self->val);
-
-    // Processo de impressão do filho esquerdo
-    imprimeArvore(self->esq, espaco, alturaArvore);
+static void imprimeNo(arv_t* self, int alt, int larg, int tFonte) {
+    tela_texto(larg, alt, tFonte, preto, self->val);
+    float px1, px2, py1, py2;
+    tela_retangulo_texto(larg, alt, tFonte, self->val, &px1, &py1, &px2, &py2);
+    tela_retangulo(px1 - 5, alt - 10, px2 + 5, alt + 10, 2, preto, transparente);
 }
 
-void printInOrder(arv_t* node) {
-    if (node == NULL) {
+static int calculaDeslocamento(arv_t* self, int alt, int larg) {
+    if (estaVazia(self)) {
+        return 0;
+    }
+
+    float px1, px2, py1, py2;
+    tela_retangulo_texto(larg, alt, 15, self->val, &px1, &py1, &px2, &py2);
+    int espacoOcupado = (px1 - px2) / 2;
+    return espacoOcupado + calculaDeslocamento(self->esq, alt, larg + espacoOcupado) + calculaDeslocamento(self->dir, alt, larg - espacoOcupado);
+}
+
+void imprimeArvore(arv_t* self, int altAtual, int largAtual) {
+    if (estaVazia(self)) {
         return;
     }
-    printInOrder(node->esq);
-    printf("%s ", node->val);
-    printInOrder(node->dir);
+
+    imprimeNo(self, altAtual, largAtual, 15);
+    
+    float px1, px2, py1, py2;
+    tela_retangulo_texto(largAtual, altAtual, 15, self->val, &px1, &py1, &px2, &py2);
+
+    int valorEsq = calculaDeslocamento(self->esq, altAtual, largAtual);
+    int valorDir = -1 * calculaDeslocamento(self->dir, altAtual, largAtual);
+    int largEsq = largAtual + valorEsq;
+    int largDir = largAtual + valorDir;
+
+
+    altAtual += 50;
+    imprimeArvore(self->esq, altAtual, largEsq + (px1 - px2));
+
+    imprimeArvore(self->dir, altAtual, largDir - (px1 - px2));
+
+    
 }

@@ -14,6 +14,9 @@
 #include "tamTela.h"
 #include "estado.h"
 
+#define LARGURA_TELA 1280
+#define ALTURA_TELA 720
+
 void testeArvore() {
     arv_t* arvore = cria_arv_vazia();
 
@@ -30,18 +33,18 @@ void testeArvore() {
 
     assert(!estaVazia(arvore));
 
-    imprimeArvore(arvore, 0, altura(arvore));
+    //imprimeArvore(arvore, 0, altura(arvore));
     printf("\n\n");
-    printInOrder(arvore);
+    //printInOrder(arvore);
 
     removeElem(&arvore, "nop");
 
-    imprimeArvore(arvore, 0, altura(arvore));
+    //imprimeArvore(arvore, 0, altura(arvore));
     printf("\n\n");
-    printInOrder(arvore);
+    //printInOrder(arvore);
 }
 
-bool iniciaJogo(estado* e, tamTela t) {
+bool iniciaJogo(estado* e) {
     e->pontos = 0;
     e->arvore = cria_arv_vazia();
     if(!leArquivoSilabas(e->silabas)) {
@@ -59,8 +62,8 @@ bool iniciaJogo(estado* e, tamTela t) {
 
     e->palavraDoComputador = NULL;
 
-    e->tamanhoTela.larg = t.larg;
-    e->tamanhoTela.alt = t.alt;
+    e->tamanhoTela.larg = LARGURA_TELA;
+    e->tamanhoTela.alt = ALTURA_TELA;
 
     e->tempoInicial = tela_relogio();
 
@@ -132,20 +135,11 @@ void inserePalavra(estado* e) {
     }
 }
 
-void obtemTamanhoTela(tamTela* t) {
-    t->alt = 900;
-    t->larg = 1920;
-}
-
 typedef enum {menu, partida, historico, sair} modoJogo;
 
 int main() {
     srand(time(NULL));
-    tamTela tamanhoTela;
-    obtemTamanhoTela(&tamanhoTela);
-    tela_inicio(tamanhoTela.larg, tamanhoTela.alt, "jogo da arvore");
-    printf("altura: %d, largura: %d\n", altura_tela(), largura_tela());
-    goto fim;
+    tela_inicio(LARGURA_TELA, ALTURA_TELA, "jogo da arvore");
     modoJogo modoAtual = partida;
 
     switch (modoAtual) {
@@ -153,7 +147,7 @@ int main() {
         break;
     case partida:
         estado jogo;
-        iniciaJogo(&jogo, tamanhoTela);
+        iniciaJogo(&jogo);
         while (jogo.equilibrada) {
             switch(jogo.estado) {
                 case normal:
@@ -180,8 +174,6 @@ int main() {
         modoAtual = sair;
         break;
     }
-
-    fim:
     tela_fim();
     return 0;
 }
