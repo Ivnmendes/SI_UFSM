@@ -148,14 +148,14 @@ void destroiArvore(arv_t* self) {
     free(self);
 }
 
-static void imprimeNo(arv_t* self, int alt, int larg, int tFonte) {
+static void imprimeNo(arv_t* self, float alt, float larg, int tFonte) {
     tela_texto(larg, alt, tFonte, preto, self->val);
     float px1, px2, py1, py2;
     tela_retangulo_texto(larg, alt, tFonte, self->val, &px1, &py1, &px2, &py2);
     tela_retangulo(px1 - 5, alt - 10, px2 + 5, alt + 10, 2, preto, transparente);
 }
 
-static int calculaDeslocamento(arv_t* self, int alt, int larg) {
+static float calculaDeslocamento(arv_t* self, float alt, float larg) {
     if (estaVazia(self)) {
         return 0;
     }
@@ -166,26 +166,52 @@ static int calculaDeslocamento(arv_t* self, int alt, int larg) {
     return espacoOcupado + calculaDeslocamento(self->esq, alt, larg + espacoOcupado) + calculaDeslocamento(self->dir, alt, larg - espacoOcupado);
 }
 
-void imprimeArvore(arv_t* self, int altAtual, int largAtual) {
+static float calculaDeslocamentoDir(arv_t* self, float alt, float larg) {
+    if (estaVazia(self)) {
+        return 0;
+    }
+
+    float px1, px2, py1, py2;
+    tela_retangulo_texto(larg, alt, 15, self->val, &px1, &py1, &px2, &py2);
+    float espacoOcupado = (px1 - px2) / 2;
+    return espacoOcupado + calculaDeslocamentoDir(self->esq, alt, larg);
+}
+
+static float calculaDeslocamentoEsq(arv_t* self, float alt, float larg) {
+    if (estaVazia(self)) {
+        return 0;
+    }
+
+    float px1, px2, py1, py2;
+    tela_retangulo_texto(larg, alt, 15, self->val, &px1, &py1, &px2, &py2);
+    float espacoOcupado = (px1 - px2) / 2;
+    return espacoOcupado + calculaDeslocamentoEsq(self->esq, alt, larg);
+}
+
+void imprimeArvore(arv_t* self, float altAtual, float largAtual) {
     if (estaVazia(self)) {
         return;
     }
-
-    imprimeNo(self, altAtual, largAtual, 15);
     
     float px1, px2, py1, py2;
     tela_retangulo_texto(largAtual, altAtual, 15, self->val, &px1, &py1, &px2, &py2);
 
-    int valorEsq = calculaDeslocamento(self->esq, altAtual, largAtual);
-    int valorDir = -1 * calculaDeslocamento(self->dir, altAtual, largAtual);
-    int largEsq = largAtual + valorEsq;
-    int largDir = largAtual + valorDir;
+    imprimeNo(self, altAtual, largAtual, 15);
 
-
-    altAtual += 50;
-    imprimeArvore(self->esq, altAtual, largEsq + (px1 - px2));
-
-    imprimeArvore(self->dir, altAtual, largDir - (px1 - px2));
-
+    float valorEsq = calculaDeslocamento(self->esq, altAtual, largAtual);
+    float valorDir = calculaDeslocamento(self->dir, altAtual, largAtual);
+    float largEsq = largAtual + valorEsq - 15;
+    float largDir = largAtual - valorDir + 15;
     
+    altAtual += 60;
+    imprimeArvore(self->esq, altAtual, largEsq);
+    if(!estaVazia(self->esq)) {
+        tela_linha(largAtual, altAtual - 50, largEsq, altAtual - 10, 2, preto);
+    }
+    
+    imprimeArvore(self->dir, altAtual, largDir);   
+    if(!estaVazia(self->dir)) {
+        tela_linha(largAtual, altAtual - 50, largDir, altAtual - 10, 2, preto);
+    }
+
 }
