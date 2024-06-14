@@ -27,7 +27,7 @@ static void tela_inicializa_janela(float l, float a, char n[])
   janela = al_create_display(l, a);
   if (janela == NULL) cai_fora("problema na criação de janela do allegro");
   // esconde o cursor do mouse
-  al_hide_mouse_cursor(janela);
+  //al_hide_mouse_cursor(janela); //ivan: preciso do mouse para o uso do menu
   al_set_window_title(janela, n);
 }
 

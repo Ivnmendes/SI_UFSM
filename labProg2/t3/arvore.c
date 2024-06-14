@@ -68,7 +68,7 @@ bool estaEquilibrado(arv_t* self) {
     if(estaVazia(self)) {
         return true;
     }
-    if(abs(calculaFatorEquilibrioNo(self)) > 10) {// mudar para 2 depois dos testes
+    if(abs(calculaFatorEquilibrioNo(self)) > 2) {
         return false;
     }
 
@@ -162,56 +162,46 @@ static float calculaDeslocamento(arv_t* self, float alt, float larg) {
 
     float px1, px2, py1, py2;
     tela_retangulo_texto(larg, alt, 15, self->val, &px1, &py1, &px2, &py2);
-    int espacoOcupado = (px1 - px2) / 2;
-    return espacoOcupado + calculaDeslocamento(self->esq, alt, larg + espacoOcupado) + calculaDeslocamento(self->dir, alt, larg - espacoOcupado);
+    int espacoOcupado = (px1 - px2) / 2; // px1 - px2 é o espaco ocupado pelo texto, dividindo por dois obtemos o centro
+    // retorna o espaco ocupado pelo no pai + espaco ocupado pela subarvore esquerda + espaco ocupado pela subarvore direita
+    return espacoOcupado + calculaDeslocamento(self->esq, alt, larg) + calculaDeslocamento(self->dir, alt, larg);
 }
 
-static float calculaDeslocamentoDir(arv_t* self, float alt, float larg) {
+float imprimeArvore(arv_t* self, float altAtual, float largAtual) {
     if (estaVazia(self)) {
         return 0;
-    }
-
-    float px1, px2, py1, py2;
-    tela_retangulo_texto(larg, alt, 15, self->val, &px1, &py1, &px2, &py2);
-    float espacoOcupado = (px1 - px2) / 2;
-    return espacoOcupado + calculaDeslocamentoDir(self->esq, alt, larg);
-}
-
-static float calculaDeslocamentoEsq(arv_t* self, float alt, float larg) {
-    if (estaVazia(self)) {
-        return 0;
-    }
-
-    float px1, px2, py1, py2;
-    tela_retangulo_texto(larg, alt, 15, self->val, &px1, &py1, &px2, &py2);
-    float espacoOcupado = (px1 - px2) / 2;
-    return espacoOcupado + calculaDeslocamentoEsq(self->esq, alt, larg);
-}
-
-void imprimeArvore(arv_t* self, float altAtual, float largAtual) {
-    if (estaVazia(self)) {
-        return;
     }
     
+    // Variáveis necessárias para o desenho das linhas
+    float largRetornadaEsq, largRetornadaDir;
+
     float px1, px2, py1, py2;
     tela_retangulo_texto(largAtual, altAtual, 15, self->val, &px1, &py1, &px2, &py2);
 
+    float valorEsq = calculaDeslocamento(self->esq, altAtual, largAtual);   // Espaco ocupado pela subarvore esquerda
+    float valorDir = calculaDeslocamento(self->dir, altAtual, largAtual);   // Espaco ocupado pela subarvore direita
+
+    if (valorEsq > valorDir) {                                              // Se a subarvore esquerda é maior, desenha mais a direita
+        largAtual += valorEsq;
+    } else if (valorDir > valorEsq) {                                       // Senao se a subarvore direita e maior, desenha mais a esquerda
+        largAtual -= valorDir;
+    }
     imprimeNo(self, altAtual, largAtual, 15);
 
-    float valorEsq = calculaDeslocamento(self->esq, altAtual, largAtual);
-    float valorDir = calculaDeslocamento(self->dir, altAtual, largAtual);
+    // Deixa 30 de espaço entre os dois nós
     float largEsq = largAtual + valorEsq - 15;
     float largDir = largAtual - valorDir + 15;
     
     altAtual += 60;
-    imprimeArvore(self->esq, altAtual, largEsq);
     if(!estaVazia(self->esq)) {
-        tela_linha(largAtual, altAtual - 50, largEsq, altAtual - 10, 2, preto);
+        largRetornadaEsq = imprimeArvore(self->esq, altAtual, largEsq);
+        tela_linha(largAtual, altAtual - 50, largRetornadaEsq, altAtual - 10, 2, preto);
     }
     
-    imprimeArvore(self->dir, altAtual, largDir);   
     if(!estaVazia(self->dir)) {
-        tela_linha(largAtual, altAtual - 50, largDir, altAtual - 10, 2, preto);
+        largRetornadaDir = imprimeArvore(self->dir, altAtual, largDir);   
+        tela_linha(largAtual, altAtual - 50, largRetornadaDir, altAtual - 10, 2, preto);
     }
 
+    return largAtual;
 }

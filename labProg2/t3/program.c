@@ -17,33 +17,6 @@
 #define LARGURA_TELA 1280
 #define ALTURA_TELA 720
 
-void testeArvore() {
-    arv_t* arvore = cria_arv_vazia();
-
-    assert(estaVazia(arvore));
-
-    arvore = insereElem(arvore, "abc");
-    arvore = insereElem(arvore, "def");
-    arvore = insereElem(arvore, "hij");
-    arvore = insereElem(arvore, "klm");
-    arvore = insereElem(arvore, "nop");
-    arvore = insereElem(arvore, "mop");
-    arvore = insereElem(arvore, "map");
-    arvore = insereElem(arvore, "kap");
-
-    assert(!estaVazia(arvore));
-
-    //imprimeArvore(arvore, 0, altura(arvore));
-    printf("\n\n");
-    //printInOrder(arvore);
-
-    removeElem(&arvore, "nop");
-
-    //imprimeArvore(arvore, 0, altura(arvore));
-    printf("\n\n");
-    //printInOrder(arvore);
-}
-
 bool iniciaJogo(estado* e) {
     e->pontos = 0;
     e->arvore = cria_arv_vazia();
@@ -123,7 +96,7 @@ void inserePalavra(estado* e) {
     if(e->palavraDoComputador == NULL) {
         sorteiaPalavra(&e->palavraDoComputador, e->silabas);
         e->tempoInsercao = tela_relogio();
-        e->tempoSorteado = rand() % 4 + 1; //Garante que o tempo mínimo é de 1 segundo
+        e->tempoSorteado = rand() % 3 + 1; //Garante que o tempo mínimo é de 1 segundo
     } else if (tela_relogio() - e->tempoInsercao >= e->tempoSorteado) {
         e->arvore = insereElem(e->arvore, e->palavraDoComputador);
         e->equilibrada = estaEquilibrado(e->arvore);
@@ -140,39 +113,59 @@ typedef enum {menu, partida, historico, sair} modoJogo;
 int main() {
     srand(time(NULL));
     tela_inicio(LARGURA_TELA, ALTURA_TELA, "jogo da arvore");
-    modoJogo modoAtual = partida;
+    modoJogo modoAtual = menu;
 
-    switch (modoAtual) {
-    case menu:
-        break;
-    case partida:
-        estado jogo;
-        iniciaJogo(&jogo);
-        while (jogo.equilibrada) {
-            switch(jogo.estado) {
-                case normal:
-                    leituraDeTecla(&jogo);
-                    inserePalavra(&jogo);        
-                    imprimeJogo(jogo);
+    while (modoAtual != sair) {
+        switch (modoAtual) {
+        case menu:
+            imprimeMenu(ALTURA_TELA, LARGURA_TELA);
+            if (tela_rato_apertado()) {
+                int px, py;
+                tela_rato_pos(&px, &py);
+                
+                int opMenu = testaBotaoMenu(px, py, LARGURA_TELA, ALTURA_TELA);
+
+                switch (opMenu) {
+                case 2:
+                    modoAtual = partida;
                     break;
-                case desequilibrado:
+                case 3:
+                    modoAtual = historico;
                     break;
-                case parado:
+                case 4:
+                    modoAtual = sair;
                     break;
                 default:
                     break;
+                }
             }
+            break;
+        case partida:
+            estado jogo;
+            iniciaJogo(&jogo);
+            while (jogo.equilibrada) {
+                switch(jogo.estado) {
+                    case normal:
+                        leituraDeTecla(&jogo);
+                        inserePalavra(&jogo);        
+                        imprimeJogo(jogo);
+                        break;
+                    case parado:
+                        break;
+                    default:
+                        break;
+                }
+            }
+            finalizaJogo(&jogo);
+            modoAtual = menu;
+            break;
+        case historico:
+            break;
+        default:
+            printf("erro desconhecido!\n");
+            modoAtual = sair;
+            break;
         }
-        finalizaJogo(&jogo);
-        break;
-    case historico:
-        break;
-    case sair:
-        break;
-    default:
-        printf("erro desconhecido!\n");
-        modoAtual = sair;
-        break;
     }
     tela_fim();
     return 0;

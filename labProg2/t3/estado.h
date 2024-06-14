@@ -15,7 +15,7 @@ typedef struct {
     double tempoSorteado;
     bool equilibrada;
     tamTela tamanhoTela;
-    enum {normal, desequilibrado, parado} estado;
+    enum {normal, parado} estado;
 } estado;
 
 #endif

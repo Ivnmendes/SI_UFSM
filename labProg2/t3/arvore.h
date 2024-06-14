@@ -20,4 +20,4 @@ void destroiArvore(arv_t* self); //Libera a memoria alocada para cada no
 
 bool removeElem(arv_t** self, char* dado); //Remove um elemento, retorna false caso nao encontre nenhum e true caso seja removido
 
-void imprimeArvore(arv_t* self, float altAtual, float largAtual);
+float imprimeArvore(arv_t* self, float altAtual, float largAtual);//Desenha a árvore na teça, retorna a largura do nó pai impresso (desnecessário no resto do programa, usado na recursão)
