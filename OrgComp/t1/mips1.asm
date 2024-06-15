@@ -9,26 +9,25 @@
 # $s1: eb vetor instrucoes
 #
 #TODO:
-# ( ) problema no acesso a pilha virtual
 # (x) .data				:	f
 # TIPO R
-	# (x) ADD			:	ft
-	# (x) syscall			:	ft
-	# (x) JR			:	ft
-	# (x) ADDU			:	ft
+	# (x) ADD			:	f
+	# (x) syscall			:	f
+	# (x) JR			:	f
+	# (x) ADDU			:	f
 # TIPO J
-	# (x) J				:	ft
-	# (x) JAL			:	ft
+	# (x) J				:	f
+	# (x) JAL			:	f
 # TIPO I
-	# (x) ADDI			:	ft
-	# (x) ADDIU			:	ft
-	# (x) LW			:	ft
-	# (x) SW			:	ft
-	# (x) bne			:	ft
-	# (x) ori			:	ft
-	# (x) lui			:	ft
+	# (x) ADDI			:	f
+	# (x) ADDIU			:	f
+	# (x) LW			:	f
+	# (x) SW			:	f
+	# (x) bne			:	f
+	# (x) ori			:	f
+	# (x) lui			:	f
 # PSEUDOINSTRUCAO
-	# (x) MUL			:	ft
+	# (x) MUL			:	f
 	
 # |-------------|---------------|
 # |legenda	|	status	|
@@ -46,7 +45,6 @@
 	arqData:		.asciiz		"trabalh0_01-2024_1.dat"	#endereco do arquivo onde esta guardado o .data do programa
 	instrucoes:		.word		0				#numero de intrucoes guardadas no vetor
 	registradores:		.space		128				#vetor com registradores simulados, tentarei seguir a mesma lógica padrão (pos 31 do vetor e o registrador $ra)
-	#pcSimulado:		.word		0				#salva a posicao atual executada do vetor
 	pcSimulado:		.word		0x00400000
 	
 .text
@@ -58,7 +56,6 @@
 		jal leituraDeArquivoData
 		jal leituraDeArquivoBin						#faz a leitura do arquivo
 		jal executaPrograma						#executa o programa a partir do vetor de instrucoes
-		#jal imprimeVetor
 	fim:
 		#finaliza programa
 		li $v0, 10
@@ -101,7 +98,7 @@ iniciaRegistradores:
     	la $t0, pilhaVirtual
     	la $t1, registradores
     	addi $t0, $t0, 1024							#move o ponteiro para o final da pilha
-    	sw $t0, 116($t1)							#carrega endereco de $sp, (testar depois, possivelmente endereco errado)
+    	sw $t0, 116($t1)							#carrega endereco de $sp
     	jr $ra
 
 
@@ -412,12 +409,12 @@ executaPrograma:
 	la $t2, pcSimulado							#carrega endereco do pcSimulado
 	lw $t3, 0($t2)								#carrega o valor de pcSimulado
 	loopExecucao:
-		beqz, $t0, fimDaExecucao
-		#obtem instrucao do vetor de instrucoes
-		#codigo experimental
+		#adaptar esse trecho: beqz, $t0, fimDaExecucao
+		
 		subiu $t4, $t3, 0x00400000
 		div $t4, $t4, 4							#conversao para formato de indice
 		
+		#obtem instrucao do vetor de instrucoes
 		sll $t4, $t4, 2							#calcula deslocamento
 		add $t4, $s1, $t4						#$s1 = endereco base do vetor de instrucoes, calcula o endereco da instrucao atual
 		lw $a0, 0($t4)							#carrega instrucao atual
@@ -436,7 +433,6 @@ executaPrograma:
 #epilogo
 	lw $ra, 0($sp)								#carrega $ra da pilha
 	addiu $sp, $sp, 4							#restaura a pilha
-	fimDaExecucao:
 	jr $ra
 #-------------------------------------------------------------------------------
 # procedimento executaInstrucao
@@ -463,11 +459,11 @@ executaInstrucao:
 	andi $a1, $a1, 0x3F							#mascara para obter os bits menos significativos
 
 	#verifica tipo de opcode
-	#verifica se a instrucao e do tipo pseudo (por enquanto, intervalo entre 24 e 31)
+	#verifica se a instrucao e do tipo pseudo (intervalo entre 24 e 31)
 	li $t0, 24
 	li $t1, 31
-	ble $t0, $a1, nao_pseudo
-	ble $t1, $a1, tipo_pseudo
+	blt $a1, $t0, nao_pseudo
+	ble $a1, $t1, tipo_pseudo
 	
 	nao_pseudo:
 	#verifica se a instrucao e tipo j (j = 2 e jal = 3)
@@ -522,6 +518,7 @@ executaTipoI:
 	move $t1, $a1								#coloca o opcode em t1
 	la $t2, registradores
 #corpo
+	li $a3, 0
 	#extrai rs
 	srl $a0, $t0, 21							#transfere os bits referentes a rs para os 5 menos significativos
 	andi $t3, $a0, 0x1F							#faz um and entre o valor obtido e 0001 1111
@@ -533,7 +530,7 @@ executaTipoI:
 	bne $t3, 29, nao_sp_rs_i
 	
 	#ajusta rs para a pilha virtual
-	lw $a0, 0($a0)								#carrega o endereco da pilha
+	addi $a3, $a3, 1
 	
 	nao_sp_rs_i:
 	#extrai rt
@@ -543,13 +540,6 @@ executaTipoI:
 	sll $a1, $t3, 2								#calcula o deslocamento para chegar no registrador rt
 	add $a1, $t2, $a1							#endereco desejado
 	
-	#testa se rt e o registrador $sp
-	bne $t3, 29, nao_sp_rt_i
-	
-	#ajusta rs para a pilha virtual
-	lw $a1, 0($a1)								#carrega o endereco da pilha
-	
-	nao_sp_rt_i:
 	#extrai imm
 	andi $a2, $t0, 0xFFFF							#faz um and entre a instrucao e 1111 1111 1111 1111
 	
@@ -668,13 +658,6 @@ executaTipoR:
 	sll $a0, $t3, 2								#calcula o deslocamento para chegar no registrador rs
 	add $a0, $t2, $a0							#endereco desejado
 	
-	#testa se rs e o registrador $sp
-	bne $t3, 29, nao_sp_rs_r
-	
-	#ajusta rs para a pilha virtual
-	lw $a0, 0($a0)								#carrega o endereco da pilha
-	
-	nao_sp_rs_r:
 	#extrai rt
 	srl $a1, $t0, 16							#transfere os bits referentes a rt para os 5 menos significativos
 	andi $t3, $a1, 0x1F							#faz um and entre o valor obtido e 0001 1111
@@ -682,13 +665,6 @@ executaTipoR:
 	sll $a1, $t3, 2								#calcula o deslocamento para chegar no registrador rt
 	add $a1, $t2, $a1							#endereco desejado
 	
-	#testa se rt e o registrador $sp
-	bne $t3, 29, nao_sp_rt_r
-	
-	#ajusta rs para a pilha virtual
-	lw $a1, 0($a1)								#carrega o endereco da pilha
-	
-	nao_sp_rt_r:
 	#extrai rd
 	srl $a2, $t0, 11							#transfere os bits referentes a rd para os 5 menos significativos
 	andi $t3, $a2, 0x1F							#faz um and entre o valor obtido e 0001 1111
@@ -696,13 +672,6 @@ executaTipoR:
 	sll $a2, $t3, 2								#calcula o deslocamento para chegar no registrador rd
 	add $a2, $t2, $a2							#endereco desejado
 	
-	#testa se rd e o registrador $sp
-	bne $t3, 29, nao_sp_rd_r
-	
-	#ajusta rs para a pilha virtual
-	lw $a2, 0($a2)								#carrega o endereco da pilha
-	
-	nao_sp_rd_r:
 	#extrai shamt	
 	srl $a3, $t0, 6								#transfere os bits referentes a shamt para os 5 menos significativos
 	andi $a3, $a3, 0x1F							#faz um and entre o valor obtido e 0001 1111
@@ -843,7 +812,7 @@ opBne:
 	
 	#faz o teste
 	beq $a0, $a1, fim_teste_bne
-	#desvio = pc + 4 + (imm * 4), (obs: pc+4 e feito no looping de instrucoes
+	#desvio = pc + 4 + (imm * 4), (obs: pc+4 e feito no looping de instrucoes)
 	lw $t2, 0($t1)								#carrega o valor atual de pc
 	sll $a2, $a2, 2								#imm * 4
 	add $t2, $t2, $a2							#endereco desejado
@@ -910,6 +879,7 @@ opAddiu:
 	ori $a2, $a2, 0xFFFF0000						#transforma em numero com sinal
 	
 	nao_convertido_addiu:
+	
 	lw $a0, 0($a0)								#carrega o valor salvo no registrador virtual
 	
 	addu $t1, $a0, $a2							#t1 recebe rs + imm
@@ -958,9 +928,8 @@ opOri:
 # 
 #-------------------------------------------------------------------------------
 opLui:
-	srl $t1, $a2, 16       							#move 16 bits para direita para zerar os 16 menos significativos
-   	sll $t1, $t1, 16						 	#move os bits restantes novamente ao local desejado
-	sw $t1, 0($a1)           						#salva o valor no registrador rt
+	sll $t1, $a2, 16       							#move os 16 bits menos significativos para a esquerda
+   	sw $t1, 0($a1)           						#salva o valor no registrador rt
 	
 	jr $ra
 	
@@ -976,12 +945,15 @@ opLui:
 # $a0	:	rs
 # $a1	:	rt
 # $a2	:	imm
-# 
+# $a3	:	O registrador rs é $sp? 0 caso nao e 1 caso sim
 # Retorno do procedimento:
 # 
 #-------------------------------------------------------------------------------
-opLw:
-	#lw $a0, 0($a0)
+opLw:	
+	bne $a3, 1, n_reg_pilha_lw
+	lw $a0, 0($a0)								#carrega o endereco da pilha virtual de $sp
+	
+	n_reg_pilha_lw:
 	add $a0, $a0, $a2							#endereco desejado, soma do endereco do registrador e imm. ex: imm = 2 entao lw vai carregar o valor de 2($a0)
 	
 	lw $t1, 0($a0)           						#carrega o valor no registrador rs
@@ -1001,14 +973,17 @@ opLw:
 # $a0	:	rs
 # $a1	:	rt
 # $a2	:	imm
-# 
+# $a3	:	O registrador rs é $sp? 0 caso nao e 1 caso sim
 # Retorno do procedimento:
 # 
 #-------------------------------------------------------------------------------
 opSw:
-	#lw $a0, 0($a0)
-	add $a0, $a0, $a2							#endereco desejado, soma do endereco do registrador e imm. ex. imm = 2 entao lw vai salvar em 2($a0)
+	bne $a3, 1, n_reg_pilha_sw				
+	lw $a0, 0($a0)								#carrega o endereco da pilha virtual de $sp
 	
+	n_reg_pilha_sw:
+	
+	add $a0, $a0, $a2							#endereco desejado, soma do endereco do registrador e imm. ex. imm = 2 entao lw vai salvar em 2($a0)
 	#obtem registrador de rt
 	lw $a1, 0($a1)								#carrega o valor salvo no registrador virtual
 	
@@ -1046,7 +1021,7 @@ opJ:
 	and $t1, $t1, $t2
 	
 	or $t1, $t1, $a0							#concatena os 4 bits mais significativos de pc com os 26 bits deslocados de imm
-	subi $t1, $t1, 4							#gambiarra
+	subi $t1, $t1, 4							
 	sw $t1, 0($t0)								#salva o novo valor de pcSimulado
 	
 	jr $ra
@@ -1084,7 +1059,7 @@ opJal:
 	li $t2, 0xF0000000							#mascara para extrair os 4 bits mais significativos de pc virtual
 	and $t1, $t1, $t2
 	or $t1, $t1, $a0							#concatena os 4 bits mais significativos de pc com os 26 bits deslocados de imm
-	subi $t1, $t1, 4						#gambiarra
+	subi $t1, $t1, 4						
 	sw $t1, 0($t0)								#salva o novo valor de pcSimulado
 	
 	jr $ra
@@ -1163,7 +1138,7 @@ opAdd:
 opAddu:
 	#carrega o vetor de registradores
 	la $t1, registradores
-	
+
 	#carrega rs
 	lw $t0, 0($a0)
 	
