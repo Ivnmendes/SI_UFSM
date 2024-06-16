@@ -22,7 +22,7 @@ static void imprimePalavraDigitada(estado e) {
 
 static void imprimePalavraDoComputador(estado e) {
     char aux[] = "Palavra futura:";
-    tela_texto(e.tamanhoTela.larg * 0.85, e.tamanhoTela.alt - (e.tamanhoTela.alt / 25), 20, preto, aux);
+    tela_texto(e.tamanhoTela.larg * 0.83, e.tamanhoTela.alt - (e.tamanhoTela.alt / 25), 20, preto, aux);
     if (e.palavraDoComputador != NULL) {
         tela_texto(e.tamanhoTela.larg * 0.85 + strlen(aux) + 100, e.tamanhoTela.alt - (e.tamanhoTela.alt / 25), 20, vermelho, e.palavraDoComputador);
     }

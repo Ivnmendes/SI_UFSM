@@ -13,7 +13,7 @@ struct _no {
     char* val;
     no_t* esq;
     no_t* dir;
-    int tamanhoNo;
+   float posicaoX;
 };
 
 
@@ -30,15 +30,13 @@ static arv_t* cria_no(char* dado) { // Cria um nó, alocando a memória necessá
     assert(no->val != NULL);
     strcpy(no->val, dado);
 
-    no->tamanhoNo = strlen(dado) + 4;
+    no->posicaoX = 0;
 
     no->esq = cria_arv_vazia();
     no->dir = cria_arv_vazia();
 
     return no;
 }
-
-int tamanhoDoNo(arv_t* self) { return self->tamanhoNo;}
 
 bool estaVazia(arv_t* self) { return self == NULL;}
 
@@ -68,7 +66,7 @@ bool estaEquilibrado(arv_t* self) {
     if(estaVazia(self)) {
         return true;
     }
-    if(abs(calculaFatorEquilibrioNo(self)) > 2) {
+    if(abs(calculaFatorEquilibrioNo(self)) > 10) {
         return false;
     }
 
@@ -167,41 +165,29 @@ static float calculaDeslocamento(arv_t* self, float alt, float larg) {
     return espacoOcupado + calculaDeslocamento(self->esq, alt, larg) + calculaDeslocamento(self->dir, alt, larg);
 }
 
-float imprimeArvore(arv_t* self, float altAtual, float largAtual) {
+void imprimeArvore(arv_t* self, float altAtual, float largAtual) {
     if (estaVazia(self)) {
-        return 0;
+        return;
     }
-    
-    // Variáveis necessárias para o desenho das linhas
-    float largRetornadaEsq, largRetornadaDir;
 
     float px1, px2, py1, py2;
     tela_retangulo_texto(largAtual, altAtual, 15, self->val, &px1, &py1, &px2, &py2);
 
     float valorEsq = calculaDeslocamento(self->esq, altAtual, largAtual);   // Espaco ocupado pela subarvore esquerda
     float valorDir = calculaDeslocamento(self->dir, altAtual, largAtual);   // Espaco ocupado pela subarvore direita
-
-    if (valorEsq > valorDir) {                                              // Se a subarvore esquerda é maior, desenha mais a direita
-        largAtual += valorEsq;
-    } else if (valorDir > valorEsq) {                                       // Senao se a subarvore direita e maior, desenha mais a esquerda
-        largAtual -= valorDir;
-    }
+    
     imprimeNo(self, altAtual, largAtual, 15);
 
-    // Deixa 30 de espaço entre os dois nós
-    float largEsq = largAtual + valorEsq - 15;
-    float largDir = largAtual - valorDir + 15;
+    float largEsq = largAtual + valorEsq + valorDir;
     
     altAtual += 60;
     if(!estaVazia(self->esq)) {
-        largRetornadaEsq = imprimeArvore(self->esq, altAtual, largEsq);
-        tela_linha(largAtual, altAtual - 50, largRetornadaEsq, altAtual - 10, 2, preto);
+        imprimeArvore(self->esq, altAtual, largAtual - abs(largAtual - largEsq - 10));
+        tela_linha(largAtual, altAtual - 50, largAtual - abs(largAtual - largEsq - 10), altAtual - 10, 2, preto);
     }
     
     if(!estaVazia(self->dir)) {
-        largRetornadaDir = imprimeArvore(self->dir, altAtual, largDir);   
-        tela_linha(largAtual, altAtual - 50, largRetornadaDir, altAtual - 10, 2, preto);
+        imprimeArvore(self->dir, altAtual, largAtual + abs(largAtual - largEsq - 10));   
+        tela_linha(largAtual, altAtual - 50, largAtual + abs(largAtual - largEsq - 10), altAtual - 10, 2, preto);
     }
-
-    return largAtual;
 }
