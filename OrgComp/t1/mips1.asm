@@ -4,7 +4,7 @@
 # Autor: Ivan Mendes Martignago
 # Data: 21/06/24
 
-# remover depois>>> conteudo dos registradores $sx
+# conteudo dos registradores $sx
 # $s0: descritor do arquivo aberto
 # $s1: eb vetor instrucoes
 #
@@ -45,26 +45,87 @@
 	arqData:		.asciiz		"trabalh0_01-2024_1.dat"	#endereco do arquivo onde esta guardado o .data do programa
 	instrucoes:		.word		0				#numero de intrucoes guardadas no vetor
 	registradores:		.space		128				#vetor com registradores simulados, tentarei seguir a mesma lógica padrão (pos 31 do vetor e o registrador $ra)
-	pcSimulado:		.word		0x00400000
+	pcSimulado:		.word		0x00400000			#simulador do Program Counter, usado para percorrer o vetor de instrucoes
 	
+	#erros
+	ERRO:			.asciiz		"Erro: "
+	ERRO_ABERTURA_ARQUIVO:	.asciiz		"Nao foi possivel abrir o arquivo!"
+	ERRO_LEITURA_ARQUIVO:	.asciiz		"Ocorreu um erro durante a leitura do arquivo!"
+	ERRO_REG_INVALIDO:	.asciiz		"Registrador invalido!"
+	ERRO_INST_INVALIDA:	.asciiz		"Instrucao nao existe ou nao foi traduzida!"
+	ERRO_FINALIZACAO:	.asciiz		"Programa incorretamente finalizado ao chegar no fim das instrucoes!"
 .text
 
 .globl main
 
 	main:
 		jal iniciaRegistradores						#inicia os registradores virtuais em 0
-		jal leituraDeArquivoData
-		jal leituraDeArquivoBin						#faz a leitura do arquivo
+		jal leituraDeArquivoData					#faz a leitura do arquivo com o .data
+		jal leituraDeArquivoBin						#faz a leitura do arquivo de instrucoes
 		jal executaPrograma						#executa o programa a partir do vetor de instrucoes
 	fim:
 		#finaliza programa
 		li $v0, 10
 		syscall
 		
-	erro:
-		#erro ao abrir arquivo
-		li $a0, -1
-		li $v0, 1
+#-------------------------------------------------------------------------------
+# procedimento erro
+# ------------------------------------------------------------------------------
+# mapa da pilha
+# 
+# 
+# 
+#-------------------------------------------------------------------------------
+# Argumentos
+# $a0	:	codigo de erro
+# 	$a0 = 0	:	erro na abertura do arquivo
+# 	$a0 = 1	:	erro na leitura do arquivo
+# 	$a0 = 2	:	codigo de registrador invalido
+# 	$a0 = 3	:	instrucao invalida
+#	$a0 = 4 :	finalizacao incorreta
+# Retorno do procedimento:
+# 
+#-------------------------------------------------------------------------------	
+erro:
+		move $t0, $a0							#salva codigo de erro
+		
+		la $a0, ERRO
+		li $v0, 4
+		syscall
+		#verifica erro ocorrido
+		beq $t0, 0, erro_abertura
+		beq $t0, 1, erro_leitura
+		beq $t0, 2, erro_reg_invalido
+		beq $t0, 3, erro_inst_invalida
+		beq $t0, 4, erro_finalizacao_incorreta
+		
+		erro_abertura:
+		la $a0, ERRO_ABERTURA_ARQUIVO
+		li $v0, 4
+		syscall
+		j fim
+		
+		erro_leitura:
+		la $a0, ERRO_LEITURA_ARQUIVO
+		li $v0, 4
+		syscall
+		j fim
+		
+		erro_reg_invalido:
+		la $a0, ERRO_REG_INVALIDO
+		li $v0, 4
+		syscall
+		j fim
+		
+		erro_inst_invalida:
+		la $a0, ERRO_INST_INVALIDA
+		li $v0, 4
+		syscall
+		j fim
+		
+		erro_finalizacao_incorreta:
+		la $a0, ERRO_FINALIZACAO
+		li $v0, 4
 		syscall
 		j fim
 		
@@ -122,7 +183,6 @@ leituraDeArquivoBin:
 	sw $ra, 0($sp)								#guarda $ra na pilha
 
 #corpo
-	#la $s1, instrucoes							#endereco base do vetor de instrucoes
 	la $a0, arqBin								#endereco do arquivo
 	li $a1, 0								#modo de leitura
 	li $a2, 0								#permissao, usado no modo leitura apenas
@@ -179,7 +239,6 @@ leituraDeArquivoData:
 	sw $ra, 0($sp)								#guarda $ra na pilha
 
 #corpo
-	#la $s1, instrucoes							#endereco base do vetor de instrucoes
 	la $a0, arqData								#endereco do arquivo
 	li $a1, 0								#modo de leitura
 	li $a2, 0								#permissao, usado no modo leitura apenas
@@ -223,8 +282,11 @@ abrirArquivo:
 	li $v0, 13								#codigo para abertura
 	syscall									#retorna o descritor
 	
-	bltz $v0, erro								#verifica se o arquivo foi abertor corretamente
-
+	bgez $v0, abriu_corretamente						#verifica se o arquivo foi aberto corretamente
+	li $a0, 0								#codigo de erro
+	j erro
+	
+	abriu_corretamente:
 	jr $ra
 #-------------------------------------------------------------------------------
 # procedimento obterTamahoArquivo
@@ -260,8 +322,11 @@ obtemTamanhoArquivo:
 		move $t2, $v0							#guarda o valor de bytes lidos
 		
 		beqz $t2, fim_loop_tamanho					#verifica se chegou ao final
-		bltz $t2, erro							#verifica se houve problemas na leitura
+		bgez $t2, leu_corretamente_tam_arquivo				#verifica se houve problemas na leitura
+		li $a0, 1							#codigo de erro
+		j erro
 		
+		leu_corretamente_tam_arquivo:
 		add $t1, $t1, $t2						#contador += nDeBytesLidos
     		
 		j loop_tamanho
@@ -301,7 +366,7 @@ obtemTamanhoArquivo:
 #-------------------------------------------------------------------------------
 lerInstrucao:
 #prologo
-	addiu $sp, $sp, -4					#		libera espaco na pilha
+	addiu $sp, $sp, -4							#libera espaco na pilha
 	sw $ra, 0($sp)								#salva $ra
 	
 #corpo
@@ -316,8 +381,11 @@ lerInstrucao:
 		add $t0, $v0, $zero
 		
 		beq $t0, 0, fim_loop
-		bltz $t0, erro
+		bgez $t0, leu_corretamente_instrucao
+		li $a0, 1							#codigo de erro
+		j erro
 		
+		leu_corretamente_instrucao:
 		#salva a ultima instrucao no vetor
 		la $t0, buffer							#carrega endereco do buffer da pilha
 		lw $a0, 0($t0)							#carrega a ultima instrucao lida
@@ -350,7 +418,11 @@ lerData:
 	li $v0, 14								#codigo leitura
 	syscall					
 
-	bltz $v0, erro
+	bgez $v0, leu_corretamente_data
+	li $a0, 1								#codigo de erro
+	j erro
+		
+	leu_corretamente_data:
 	
 	jr $ra
 
@@ -403,17 +475,17 @@ executaPrograma:
 	addiu $sp, $sp, -4							#libera espaco na pilha
 	sw $ra, 0($sp)								#salva $ra na pilha
 #corpo
-	la $t0, instrucoes							#carrega endereco do total de instrucoes
-	lw $t0, 0($t0)								#carrega valor do total de instrucoes
 	la $t1, registradores							#carrega endereco base do vetor de registradores
 	la $t2, pcSimulado							#carrega endereco do pcSimulado
 	lw $t3, 0($t2)								#carrega o valor de pcSimulado
 	loopExecucao:
-		#adaptar esse trecho: beqz, $t0, fimDaExecucao
-		
 		subiu $t4, $t3, 0x00400000
 		div $t4, $t4, 4							#conversao para formato de indice
 		
+		#verifica se o indice e maior que o total de instrucoes, se sim, significa que o programa nao foi finalizado com syscall
+		la $t0, instrucoes						#carrega endereco do total de instrucoes
+		lw $t0, 0($t0)							#carrega valor do total de instrucoes
+		bge $t4, $t0, programa_finalizado_incorretamente
 		#obtem instrucao do vetor de instrucoes
 		sll $t4, $t4, 2							#calcula deslocamento
 		add $t4, $s1, $t4						#$s1 = endereco base do vetor de instrucoes, calcula o endereco da instrucao atual
@@ -425,11 +497,12 @@ executaPrograma:
 		#realiza operacoes necessarias para a proxima instrucao			
 		la $t2, pcSimulado						#carrega endereco do pcSimulado
 		lw $t3, 0($t2)							#carrega valor atual de pcSimulado
-		#addiu $t3, $t3, 1						#aumenta o contador pc simulado
-		addiu $t3, $t3, 4 #experimental
+		addiu $t3, $t3, 4 						#proximo valor de pcSimulado
 		sw $t3, 0($t2)							#salva novo valor de pcSimulado
-		subi $t0, $t0, 1						#decrementa o contador de instrucoes em 1
 		j loopExecucao
+	programa_finalizado_incorretamente:
+	li $a0, 4
+	j erro
 #epilogo
 	lw $ra, 0($sp)								#carrega $ra da pilha
 	addiu $sp, $sp, 4							#restaura a pilha
@@ -522,6 +595,10 @@ executaTipoI:
 	#extrai rs
 	srl $a0, $t0, 21							#transfere os bits referentes a rs para os 5 menos significativos
 	andi $t3, $a0, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	
+	#verifica se registrador existe (intervalo entre 0 e 31)
+	blt $t3, 0, registrador_invalido_i
+	bgt $t3, 31, registrador_invalido_i
 	#carrega rs
 	sll $a0, $t3, 2								#calcula o deslocamento para chegar no registrador rs
 	add $a0, $t2, $a0							#endereco desejado
@@ -536,6 +613,9 @@ executaTipoI:
 	#extrai rt
 	srl $a1, $t0, 16							#transfere os bits referentes a rt para os 5 menos significativos
 	andi $t3, $a1, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	#verifica se registrador existe (intervalo entre 0 e 31)
+	blt $t3, 0, registrador_invalido_i
+	bgt $t3, 31, registrador_invalido_i
 	#carrega rt
 	sll $a1, $t3, 2								#calcula o deslocamento para chegar no registrador rt
 	add $a1, $t2, $a1							#endereco desejado
@@ -551,7 +631,9 @@ executaTipoI:
 	beq $t1, 35, jump_lw
 	beq $t1, 43, jump_sw
 	
-	j epilogo_executa_tipo_i
+	#se chegou ate aqui, instrucao nao existe/nao foi traduzida
+	li $a0, 3	
+	j erro
 	
 	jump_bne:
 	jal opBne
@@ -579,7 +661,11 @@ executaTipoI:
 	
 	jump_sw:
 	jal opSw
+	j epilogo_executa_tipo_i
 	
+	registrador_invalido_i:
+	li $a0, 2
+	j erro
 #epilogo
 	epilogo_executa_tipo_i:
 	lw $ra, 0($sp)								#carrega o endereco de retorno da pilha
@@ -613,7 +699,9 @@ executaTipoJ:
 	beq $a1, 2, jump_j
 	beq $a1, 3, jump_jal
 	
-	j epilogo_executa_tipo_j
+	#se chegou ate aqui, instrucao nao existe/nao foi traduzida
+	li $a0, 3	
+	j erro
 	
 	jump_j:
 	jal opJ
@@ -654,6 +742,9 @@ executaTipoR:
 	srl $a0, $t0, 21							#transfere os bits referentes a rs para os 5 menos significativos
 	andi $t3, $a0, 0x1F							#faz um and entre o valor obtido e 0001 1111
 	
+	#verifica se registrador existe (intervalo entre 0 e 31)
+	blt $t3, 0, registrador_invalido_r
+	bgt $t3, 31, registrador_invalido_r
 	#carrega rs
 	sll $a0, $t3, 2								#calcula o deslocamento para chegar no registrador rs
 	add $a0, $t2, $a0							#endereco desejado
@@ -661,6 +752,9 @@ executaTipoR:
 	#extrai rt
 	srl $a1, $t0, 16							#transfere os bits referentes a rt para os 5 menos significativos
 	andi $t3, $a1, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	#verifica se registrador existe (intervalo entre 0 e 31)
+	blt $t3, 0, registrador_invalido_r
+	bgt $t3, 31, registrador_invalido_r
 	#carrega rt
 	sll $a1, $t3, 2								#calcula o deslocamento para chegar no registrador rt
 	add $a1, $t2, $a1							#endereco desejado
@@ -668,6 +762,9 @@ executaTipoR:
 	#extrai rd
 	srl $a2, $t0, 11							#transfere os bits referentes a rd para os 5 menos significativos
 	andi $t3, $a2, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	#verifica se registrador existe (intervalo entre 0 e 31)
+	blt $t3, 0, registrador_invalido_r
+	bgt $t3, 31, registrador_invalido_r
 	#carrega rd
 	sll $a2, $t3, 2								#calcula o deslocamento para chegar no registrador rd
 	add $a2, $t2, $a2							#endereco desejado
@@ -683,7 +780,9 @@ executaTipoR:
 	beq $t1, 32, jump_add
 	beq $t1, 33, jump_addu
 	
-	j epilogo_executa_tipo_r
+	#se chegou ate aqui, instrucao nao existe/nao foi traduzida
+	li $a0, 3	
+	j erro
 	
 	jump_jr:
 	jal opJr
@@ -699,7 +798,11 @@ executaTipoR:
 	
 	jump_addu:
 	jal opAddu
+	j epilogo_executa_tipo_r
 	
+	registrador_invalido_r:
+	li $a0, 2
+	j erro
 #epilogo
 	epilogo_executa_tipo_r:
 	lw $ra, 0($sp)								#carrega o endereco de retorno da pilha
@@ -730,12 +833,21 @@ executaTipoPseudo:
 	#extrai rs
 	srl $a0, $t0, 21							#transfere os bits referentes a rs para os 5 menos significativos
 	andi $a0, $a0, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	#verifica se registrador existe (intervalo entre 0 e 31)
+	blt $a0, 0, registrador_invalido_pseudo
+	bgt $a0, 31, registrador_invalido_pseudo
 	#extrai rt
 	srl $a1, $t0, 16							#transfere os bits referentes a rt para os 5 menos significativos
 	andi $a1, $a1, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	#verifica se registrador existe (intervalo entre 0 e 31)
+	blt $a1, 0, registrador_invalido_pseudo
+	bgt $a1, 31, registrador_invalido_pseudo
 	#extrai rd
 	srl $a2, $t0, 11							#transfere os bits referentes a rd para os 5 menos significativos
 	andi $a2, $a2, 0x1F							#faz um and entre o valor obtido e 0001 1111
+	#verifica se registrador existe (intervalo entre 0 e 31)
+	blt $a3, 0, registrador_invalido_pseudo
+	bgt $a3, 31, registrador_invalido_pseudo
 	#extrai shamt	
 	srl $a3, $t0, 6								#transfere os bits referentes a shamt para os 5 menos significativos
 	andi $a3, $a3, 0x1F							#faz um and entre o valor obtido e 0001 1111
@@ -744,12 +856,17 @@ executaTipoPseudo:
 	
 	beq $t1, 2, jump_mul
 	
-	j epilogo_executa_tipo_pseudo
+	#se chegou ate aqui, instrucao nao existe/nao foi traduzida
+	li $a0, 3	
+	j erro
 	
 	jump_mul:
 	jal opMul
 	j epilogo_executa_tipo_pseudo
 	
+	registrador_invalido_pseudo:
+	li $a0, 2
+	j erro
 #epilogo
 	epilogo_executa_tipo_pseudo:
 	lw $ra, 0($sp)								#carrega o endereco de retorno da pilha
