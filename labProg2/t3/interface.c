@@ -10,6 +10,7 @@
 #include "arvore.h"
 #include "interface.h"
 #include "telag.h"
+#include "manipulaHistorico.h"
 
 static void imprimePalavraDigitada(estado e) {
     char aux[] = "Palavra digitada:";
@@ -96,6 +97,55 @@ int testaBotaoMenu(int px, int py, float larguraTela, float alturaTela) {
     return retorno;
 }
 
-void imprimeHistorico() {
+void imprimeHistorico(float larguraTela, float alturaTela, int pontosHistorico[10]) {
+    al_clear_to_color(al_map_rgb(255, 255, 255));
+    tela_texto(larguraTela / 2, alturaTela / 10, 40, preto, "Historico");
 
+    int i = 0;
+    while(i < 10 && pontosHistorico[i] != 0) {
+        char aux[100];
+        sprintf(aux, "%d. %d", i + 1, pontosHistorico[i]);
+        tela_texto(larguraTela / 2, alturaTela / 6 + i*30, 20, preto, aux);
+        i++;
+    }
+
+    imprimeBotao(50, alturaTela - 100, 250, alturaTela - 30, 150, alturaTela - 70, 2, "Voltar", 40, preto, transparente);
+    tela_atualiza();
+}
+
+bool testaBotaoHistorico(int px, int py, float alturaTela) {
+    if (px <= 250 && px >= 50) {
+        if (py <= alturaTela - 30 && py >= alturaTela - 100) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void imprimeFimDeJogo(estado e) {
+    tela_retangulo(e.tamanhoTela.larg / 2 - 300, e.tamanhoTela.alt / 2 - 300, e.tamanhoTela.larg / 2 + 300, e.tamanhoTela.alt / 2 - 100, 3, preto, branco);
+    tela_texto(e.tamanhoTela.larg / 2, e.tamanhoTela.alt / 2 - 250, 20, preto, "Partida finalizada!");
+
+    imprimeBotao(e.tamanhoTela.larg / 2 - 280, e.tamanhoTela.alt / 2 - 150, e.tamanhoTela.larg / 2 - 30, e.tamanhoTela.alt / 2 - 110,
+    e.tamanhoTela.larg / 2 - 155, e.tamanhoTela.alt / 2 - 130,
+    1, "Jogar novamente", 25, preto, branco);
+    
+    imprimeBotao(e.tamanhoTela.larg / 2 + 50, e.tamanhoTela.alt / 2 - 150, e.tamanhoTela.larg / 2 + 280, e.tamanhoTela.alt / 2 - 110,
+    e.tamanhoTela.larg / 2 + 170, e.tamanhoTela.alt / 2 - 130,
+    1, "Menu", 25, preto, branco);
+    tela_atualiza();
+}
+
+int testaBotaoFimDeJogo(float px, float py, float alturaTela, float larguraTela) {
+    if (py >= alturaTela / 2 - 150 && py <= alturaTela / 2 - 110) {
+        if (px >= larguraTela / 2 - 280 && px <= larguraTela / 2 - 30) {
+            return 1;
+        }
+        else if (px >= larguraTela / 2 + 50 && px <= larguraTela / 2 + 280) {
+            return 2;
+        }
+    }
+
+    return 0;
 }

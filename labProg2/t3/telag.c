@@ -104,7 +104,7 @@ void tela_atualiza(void)
   tempo_ultima_tela = tela_relogio();
 
   // limpa todo o canvas em memória, para desenhar a próxima tela
-  al_clear_to_color(cores[preto]);
+  //al_clear_to_color(cores[preto]); //ivan: preferi nao usar essa linha, já que estou usando uma tela branca no fundo e queria continuar mostrando o jogo do usuario na tela final
 }
 
 

@@ -66,7 +66,7 @@ bool estaEquilibrado(arv_t* self) {
     if(estaVazia(self)) {
         return true;
     }
-    if(abs(calculaFatorEquilibrioNo(self)) > 10) {
+    if(abs(calculaFatorEquilibrioNo(self)) > 2) {
         return false;
     }
 

@@ -10,6 +10,7 @@
 #include "interface.h"
 #include "sorteioPalavras.h"
 #include "telag.h"
+#include "manipulaHistorico.h"
 
 #include "tamTela.h"
 #include "estado.h"
@@ -42,7 +43,7 @@ bool iniciaJogo(estado* e) {
 
     e->equilibrada = true;
 
-    e->estado = normal;
+    e->estado = jogando;
     return true;
 }
 
@@ -108,12 +109,36 @@ void inserePalavra(estado* e) {
     }
 }
 
-typedef enum {menu, partida, historico, sair} modoJogo;
+void iniciaVetoresHistorico(int pontosHistorico[10]) {
+    for (int i = 0; i < 10; i++) {
+        pontosHistorico[i] = 0;
+    }
+}
+
+bool verificaPontuacao(estado e, int pontosHistorico[10]) {
+    int posAtualizar = verificaHistorico(e.pontos, pontosHistorico);
+    if (posAtualizar != -1) {
+        atualizaHistorico(posAtualizar, e.pontos, pontosHistorico);
+        return escreveHistorico(pontosHistorico);
+    }
+
+    return true;
+}
+
+typedef enum {menu, partida, exibeHistorico, sair} modoJogo;
 
 int main() {
     srand(time(NULL));
     tela_inicio(LARGURA_TELA, ALTURA_TELA, "jogo da arvore");
     modoJogo modoAtual = menu;
+    int pontosHistorico[10];
+
+    iniciaVetoresHistorico(pontosHistorico);
+    if (!leHistorico(pontosHistorico)) {
+        printf("Nao foi possivel abrir o arquivo do historico, programa encerrado!");
+        return -1;
+    }
+
 
     while (modoAtual != sair) {
         switch (modoAtual) {
@@ -130,7 +155,7 @@ int main() {
                     modoAtual = partida;
                     break;
                 case 3:
-                    modoAtual = historico;
+                    modoAtual = exibeHistorico;
                     break;
                 case 4:
                     modoAtual = sair;
@@ -143,23 +168,55 @@ int main() {
         case partida:
             estado jogo;
             iniciaJogo(&jogo);
-            while (jogo.equilibrada) {
+            while (jogo.estado != final) {
                 switch(jogo.estado) {
-                    case normal:
+                    case jogando:
                         leituraDeTecla(&jogo);
                         inserePalavra(&jogo);        
                         imprimeJogo(jogo);
+                        if (!jogo.equilibrada) { jogo.estado = finalizando; }
                         break;
                     case parado:
+                        break;
+                    case finalizando:
+                        imprimeFimDeJogo(jogo);
+                        if (tela_rato_apertado()) {
+                            int px, py;
+                            tela_rato_pos(&px, &py);
+
+                            int botaoFimDeJogo = testaBotaoFimDeJogo(px, py, jogo.tamanhoTela.alt, jogo.tamanhoTela.larg);
+                            if (botaoFimDeJogo == 1) {
+                                if (!verificaPontuacao(jogo, pontosHistorico)) {
+                                    printf("Nao foi possivel salvar a pontuacao no historico!\n");
+                                    return -1;
+                                }
+                                jogo.estado = final;
+                            } else if (botaoFimDeJogo == 2) {
+                                if (!verificaPontuacao(jogo, pontosHistorico)) {
+                                    printf("Nao foi possivel salvar a pontuacao no historico!\n");
+                                    return -1;
+                                }
+                                finalizaJogo(&jogo);
+                                modoAtual = menu;
+                                jogo.estado = final;
+                            }
+                        }
                         break;
                     default:
                         break;
                 }
             }
-            finalizaJogo(&jogo);
-            modoAtual = menu;
             break;
-        case historico:
+        case exibeHistorico:
+            imprimeHistorico(LARGURA_TELA, ALTURA_TELA, pontosHistorico);
+            if (tela_rato_apertado()) {
+                int px, py;
+                tela_rato_pos(&px, &py);
+
+                if(testaBotaoHistorico(px, py, ALTURA_TELA)) {
+                    modoAtual = menu;
+                }
+            }
             break;
         default:
             printf("erro desconhecido!\n");
