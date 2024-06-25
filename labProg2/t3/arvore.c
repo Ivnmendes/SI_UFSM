@@ -13,7 +13,6 @@ struct _no {
     char* val;
     no_t* esq;
     no_t* dir;
-   float posicaoX;
 };
 
 
@@ -29,8 +28,6 @@ static arv_t* cria_no(char* dado) { // Cria um nó, alocando a memória necessá
     no->val = malloc(strlen(dado) * 1 + 1);
     assert(no->val != NULL);
     strcpy(no->val, dado);
-
-    no->posicaoX = 0;
 
     no->esq = cria_arv_vazia();
     no->dir = cria_arv_vazia();
@@ -58,7 +55,7 @@ int altura(arv_t* self) {
     return 1 + maiorNum(altura(self->esq), altura(self->dir));
 }
 
-static int calculaFatorEquilibrioNo(arv_t* self) {
+static int calculaFatorEquilibrioNo(arv_t* self) { //Fator de equilibrio do no e igual a diferenca da altura de suas subarvores
     return altura(self->esq) - altura(self->dir);
 }
 
@@ -146,7 +143,7 @@ void destroiArvore(arv_t* self) {
     free(self);
 }
 
-static void imprimeNo(arv_t* self, float alt, float larg, int tFonte) {
+static void imprimeNo(arv_t* self, float alt, float larg, int tFonte) { //Desenha o no na tela
     tela_texto(larg, alt, tFonte, preto, self->val);
     float px1, px2, py1, py2;
     tela_retangulo_texto(larg, alt, tFonte, self->val, &px1, &py1, &px2, &py2);

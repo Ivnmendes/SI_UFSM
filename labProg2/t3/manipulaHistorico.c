@@ -15,10 +15,6 @@ bool leHistorico(int pontosHistorico[10]) {
     int i = 0;
     while(!feof(arquivoHistorico) && i < 10) {    
         fscanf(arquivoHistorico, "%d", &pontosHistorico[i]);
-        // if (fscanf(arquivoHistorico, "%d", &pontosHistorico[i]) != 1) {
-            // fclose(arquivoHistorico);
-            // return false;
-        // }
         i++;
     }
 

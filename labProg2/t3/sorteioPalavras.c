@@ -25,14 +25,14 @@ bool leArquivoSilabas(char *silabas[185]) {
     return true;
 }
 
-static char *sorteiaSilaba(char *silabas[185]) {
+static char *sorteiaSilaba(char *silabas[185]) { //sorteia uma silaba aleatoria do vetor
     return silabas[rand() % 185];
 }
 
 void sorteiaPalavra(char **palavra, char* silabas[185]) {
-    int numSilabas = rand() % 2 + 1;
-
+    int numSilabas = rand() % 2 + 1; //N de silabas vai de 2 a 4
     char *aux = sorteiaSilaba(silabas);
+    
     *palavra = malloc(strlen(aux) + 1);
     assert(*palavra != NULL);
     strcpy(*palavra, aux);

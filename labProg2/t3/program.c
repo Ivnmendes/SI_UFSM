@@ -1,4 +1,5 @@
-// comando para compilar: gcc -Wall -o arvore.o arvore.c program.c sorteioPalavras.c telag.c interface.c tamTela.h estado.h -lallegro_font -lallegro_color -lallegro_ttf -lallegro_primitives -lallegro
+// comando para compilar: gcc -Wall arvore.c program.c sorteioPalavras.c telag.c interface.c tamTela.h estado.h manipulaHistorico.c -lallegro_font -lallegro_color -lallegro_ttf -lallegro_primitives -lallegro -o arvore.o && ./arvore.o
+
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -8,12 +9,12 @@
 
 #include "arvore.h"
 #include "interface.h"
+#include "manipulaHistorico.h"
 #include "sorteioPalavras.h"
 #include "telag.h"
-#include "manipulaHistorico.h"
 
-#include "tamTela.h"
 #include "estado.h"
+#include "tamTela.h"
 
 #define LARGURA_TELA 1280
 #define ALTURA_TELA 720
@@ -62,18 +63,18 @@ void leituraDeTecla(estado* e) {
     char aux;
     aux = tela_tecla();
     size_t tam = strlen(e->palavraAtual);
-    if(strlen(e->palavraAtual) < 15 && aux >= 'a' && aux <= 'z') { //strlen(x) < 15... testa se a palavra digitada ja e grande demais, evitando bugs visuais
+    if(strlen(e->palavraAtual) < 12 && aux >= 'a' && aux <= 'z') { //strlen(x) < 15... testa se a palavra digitada ja e grande demais, evitando bugs visuais
         e->palavraAtual = realloc(e->palavraAtual, tam + 2); //Aumenta a memoria alocada para incluir a nova letra e o \0
         assert(e->palavraAtual != NULL);
         e->palavraAtual[tam] = aux;
         e->palavraAtual[tam + 1] = '\0';
-    } else if(aux == '\b') {
+    } else if(aux == '\b') { //backspace
         if(tam > 0) {
             e->palavraAtual[tam - 1] = '\0';
             e->palavraAtual = realloc(e->palavraAtual, tam); //Diminui a memoria alocada
             assert(e->palavraAtual != NULL);
         }
-    } else if(aux == '\n') {
+    } else if(aux == '\n') { //enter
         if(tam > 0) {
             int pontAux = strlen(e->palavraAtual) * 100;
             if (removeElem(&e->arvore, e->palavraAtual)) {
@@ -90,7 +91,7 @@ void leituraDeTecla(estado* e) {
             assert(e->palavraAtual != NULL);
             e->palavraAtual[0] = '\0';
         }
-    } else if (aux == '\e') {
+    } else if (aux == '\e') { //esc
         e->estado = parado;
     }
 }
@@ -99,8 +100,8 @@ void inserePalavra(estado* e) {
     if(e->palavraDoComputador == NULL) {
         sorteiaPalavra(&e->palavraDoComputador, e->silabas);
         e->tempoInsercao = tela_relogio();
-        e->tempoSorteado = rand() % 6 + 1 - (tela_relogio() - e->tempoInicial) / 20; // Garante que o tempo mínimo é de 1 segundo
-        // Se passaram-se 20 segundos reduz 1 segundo do tempo de insercao, se 40 reduz dois...
+        e->tempoSorteado = rand() % 3 + 3 - (tela_relogio() - e->tempoInicial) / 30; // Garante que o tempo mínimo é de 3 segundos
+        // Se passaram-se 30 segundos reduz 1 segundo do tempo de insercao, se 40 reduz dois...
     } else if (tela_relogio() - e->tempoInsercao >= e->tempoSorteado) {
         e->arvore = insereElem(e->arvore, e->palavraDoComputador);
         e->equilibrada = estaEquilibrado(e->arvore);
@@ -138,8 +139,7 @@ int main() {
 
     iniciaVetoresHistorico(pontosHistorico);
     if (!leHistorico(pontosHistorico)) {
-        printf("Nao foi possivel abrir o arquivo do historico, programa encerrado!");
-        return -1;
+        printf("Nao foi possivel abrir o arquivo do historico!");
     }
 
 
@@ -170,7 +170,9 @@ int main() {
             break;
         case partida:
             estado jogo;
-            iniciaJogo(&jogo);
+            if (!iniciaJogo(&jogo)) {
+                return -1;
+            }
             while (jogo.estado != final) {
                 switch(jogo.estado) {
                     case jogando:
@@ -212,6 +214,7 @@ int main() {
                                     printf("Nao foi possivel salvar a pontuacao no historico!\n");
                                     return -1;
                                 }
+                                jogo.estado = final;
                                 modoAtual = menu;
                             }
                         }
@@ -221,7 +224,6 @@ int main() {
                 }
             }
             finalizaJogo(&jogo);
-            jogo.estado = final;
             break;
         case exibeHistorico:
             imprimeHistorico(LARGURA_TELA, ALTURA_TELA, pontosHistorico);

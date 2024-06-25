@@ -41,6 +41,12 @@ static void imprimePontuacao(estado e) {
     tela_texto(e.tamanhoTela.larg/2, e.tamanhoTela.alt - 15, 20, azul, aux);
 }
 
+// Funcao para imprimir botao
+// larg1, larg2, alt1, alt2 correspondem as dimensoes do retangulo do botao
+// largTexto e altTexto correspondem a posicao do texto dentro do botao
+// largRet e a especura da borda do retangulo
+// texto, tLetra e corLetra sao as informacoes do texto (texto, tamanho da letra e cor da letra, respectivamente)
+// corFundo e a cor do retangulo
 static void imprimeBotao(float larg1, float alt1, float larg2, float alt2, float largTexto, float altTexto, float largRet, char* texto, int tLetra, int corLetra, int corFundo) {
     tela_retangulo(larg1, alt1, larg2, alt2, largRet, preto, corFundo);
     tela_texto(largTexto, altTexto, tLetra, corLetra, texto);
