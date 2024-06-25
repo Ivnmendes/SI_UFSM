@@ -21,3 +21,7 @@ bool testaBotaoHistorico(int px, int py, float alturaTela);
 void imprimeFimDeJogo(estado e);
 
 int testaBotaoFimDeJogo(float px, float py, float alturaTela, float larguraTela);
+
+void imprimeTelaPause(estado e);
+
+int testaBotaoPause(float px, float py, float alturaTela, float larguraTela);

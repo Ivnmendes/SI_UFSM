@@ -90,6 +90,8 @@ void leituraDeTecla(estado* e) {
             assert(e->palavraAtual != NULL);
             e->palavraAtual[0] = '\0';
         }
+    } else if (aux == '\e') {
+        e->estado = parado;
     }
 }
 
@@ -97,7 +99,8 @@ void inserePalavra(estado* e) {
     if(e->palavraDoComputador == NULL) {
         sorteiaPalavra(&e->palavraDoComputador, e->silabas);
         e->tempoInsercao = tela_relogio();
-        e->tempoSorteado = rand() % 3 + 1; //Garante que o tempo mínimo é de 1 segundo
+        e->tempoSorteado = rand() % 6 + 1 - (tela_relogio() - e->tempoInicial) / 20; // Garante que o tempo mínimo é de 1 segundo
+        // Se passaram-se 20 segundos reduz 1 segundo do tempo de insercao, se 40 reduz dois...
     } else if (tela_relogio() - e->tempoInsercao >= e->tempoSorteado) {
         e->arvore = insereElem(e->arvore, e->palavraDoComputador);
         e->equilibrada = estaEquilibrado(e->arvore);
@@ -177,6 +180,19 @@ int main() {
                         if (!jogo.equilibrada) { jogo.estado = finalizando; }
                         break;
                     case parado:
+                        imprimeTelaPause(jogo);
+                        if (tela_rato_apertado()) {
+                            int px, py;
+                            tela_rato_pos(&px, &py);
+
+                            int botaoPause = testaBotaoPause(px, py, jogo.tamanhoTela.alt, jogo.tamanhoTela.larg);
+                            if (botaoPause == 1) {
+                                jogo.estado = jogando;
+                            } else if (botaoPause == 2) {
+                                jogo.estado = final;
+                                modoAtual = menu;
+                            }
+                        }                            
                         break;
                     case finalizando:
                         imprimeFimDeJogo(jogo);
@@ -196,9 +212,7 @@ int main() {
                                     printf("Nao foi possivel salvar a pontuacao no historico!\n");
                                     return -1;
                                 }
-                                finalizaJogo(&jogo);
                                 modoAtual = menu;
-                                jogo.estado = final;
                             }
                         }
                         break;
@@ -206,6 +220,8 @@ int main() {
                         break;
                 }
             }
+            finalizaJogo(&jogo);
+            jogo.estado = final;
             break;
         case exibeHistorico:
             imprimeHistorico(LARGURA_TELA, ALTURA_TELA, pontosHistorico);
@@ -220,7 +236,7 @@ int main() {
             break;
         default:
             printf("erro desconhecido!\n");
-            modoAtual = sair;
+            return -1;
             break;
         }
     }

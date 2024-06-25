@@ -149,3 +149,30 @@ int testaBotaoFimDeJogo(float px, float py, float alturaTela, float larguraTela)
 
     return 0;
 }
+
+void imprimeTelaPause(estado e) {
+    tela_retangulo(e.tamanhoTela.larg / 2 - 300, e.tamanhoTela.alt / 2 - 300, e.tamanhoTela.larg / 2 + 300, e.tamanhoTela.alt / 2 - 100, 3, preto, branco);
+    tela_texto(e.tamanhoTela.larg / 2, e.tamanhoTela.alt / 2 - 250, 20, preto, "Jogo Parado");
+
+    imprimeBotao(e.tamanhoTela.larg / 2 - 280, e.tamanhoTela.alt / 2 - 150, e.tamanhoTela.larg / 2 - 30, e.tamanhoTela.alt / 2 - 110,
+    e.tamanhoTela.larg / 2 - 155, e.tamanhoTela.alt / 2 - 130,
+    1, "Voltar ao jogo", 25, preto, branco);
+    
+    imprimeBotao(e.tamanhoTela.larg / 2 + 50, e.tamanhoTela.alt / 2 - 150, e.tamanhoTela.larg / 2 + 280, e.tamanhoTela.alt / 2 - 110,
+    e.tamanhoTela.larg / 2 + 170, e.tamanhoTela.alt / 2 - 130,
+    1, "Menu", 25, preto, branco);
+    tela_atualiza();
+}
+
+int testaBotaoPause(float px, float py, float alturaTela, float larguraTela) {
+    if (py >= alturaTela / 2 - 150 && py <= alturaTela / 2 - 110) {
+        if (px >= larguraTela / 2 - 280 && px <= larguraTela / 2 - 30) {
+            return 1;
+        }
+        else if (px >= larguraTela / 2 + 50 && px <= larguraTela / 2 + 280) {
+            return 2;
+        }
+    }
+
+    return 0;
+}
