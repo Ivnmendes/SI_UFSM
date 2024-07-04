@@ -7,7 +7,7 @@
 
 bool leHistorico(int pontosHistorico[10]) {
     FILE* arquivoHistorico;
-    arquivoHistorico = fopen("./historico/historico.txt", "r");
+    arquivoHistorico = fopen("./arquivos/historico/historico.txt", "r");
     if (arquivoHistorico == NULL) {
         return false;
     }
@@ -24,7 +24,7 @@ bool leHistorico(int pontosHistorico[10]) {
 
 bool escreveHistorico(int pontosHistorico[10]) {
     FILE* arquivoHistorico;
-    arquivoHistorico = fopen("./historico/historico.txt", "w+");
+    arquivoHistorico = fopen("./arquivos/historico/historico.txt", "w+");
     if (arquivoHistorico == NULL) {
         return false;
     }

@@ -63,7 +63,7 @@ void leituraDeTecla(estado* e) {
     char aux;
     aux = tela_tecla();
     size_t tam = strlen(e->palavraAtual);
-    if(strlen(e->palavraAtual) < 12 && aux >= 'a' && aux <= 'z') { //strlen(x) < 15... testa se a palavra digitada ja e grande demais, evitando bugs visuais
+    if(strlen(e->palavraAtual) < 12 && aux >= 'a' && aux <= 'z') { //strlen(x) < 12... testa se a palavra digitada ja e grande demais, evitando bugs visuais
         e->palavraAtual = realloc(e->palavraAtual, tam + 2); //Aumenta a memoria alocada para incluir a nova letra e o \0
         assert(e->palavraAtual != NULL);
         e->palavraAtual[tam] = aux;
@@ -100,9 +100,12 @@ void inserePalavra(estado* e) {
     if(e->palavraDoComputador == NULL) {
         sorteiaPalavra(&e->palavraDoComputador, e->silabas);
         e->tempoInsercao = tela_relogio();
-        e->tempoSorteado = rand() % 3 + 3 - (tela_relogio() - e->tempoInicial) / 30; // Garante que o tempo mínimo é de 3 segundos
-        // Se passaram-se 30 segundos reduz 1 segundo do tempo de insercao, se 40 reduz dois...
-    } else if (tela_relogio() - e->tempoInsercao >= e->tempoSorteado) {
+
+        int variacaoTempo = 3; // Garante que o tempo mínimo inicial é de 3 segundos
+        variacaoTempo -= (tela_relogio() - e->tempoInicial) / 30; // Se passaram-se 30 segundos reduz 1 segundo do tempo de insercao, se 60 reduz dois...
+        variacaoTempo = (variacaoTempo < 0) ? 0 : variacaoTempo; // Garante que o valor não é negativo
+        e->tempoSorteado = rand() % 3 + variacaoTempo;
+    } else if (tela_relogio() - e->tempoInsercao >= e->tempoSorteado) { // Já está na hora de inserir?
         e->arvore = insereElem(e->arvore, e->palavraDoComputador);
         e->equilibrada = estaEquilibrado(e->arvore);
 
@@ -113,7 +116,7 @@ void inserePalavra(estado* e) {
     }
 }
 
-void iniciaVetoresHistorico(int pontosHistorico[10]) {
+void iniciaVetorHistorico(int pontosHistorico[10]) {
     for (int i = 0; i < 10; i++) {
         pontosHistorico[i] = 0;
     }
@@ -137,11 +140,10 @@ int main() {
     modoJogo modoAtual = menu;
     int pontosHistorico[10];
 
-    iniciaVetoresHistorico(pontosHistorico);
+    iniciaVetorHistorico(pontosHistorico);
     if (!leHistorico(pontosHistorico)) {
         printf("Nao foi possivel abrir o arquivo do historico!");
     }
-
 
     while (modoAtual != sair) {
         switch (modoAtual) {

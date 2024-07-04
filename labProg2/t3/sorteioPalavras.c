@@ -6,7 +6,7 @@
 
 bool leArquivoSilabas(char *silabas[185]) {
     FILE* arquivoSilabas;
-    arquivoSilabas = fopen("./silabas/silabas.txt", "r");
+    arquivoSilabas = fopen("./arquivos/silabas/silabas.txt", "r");
     if(arquivoSilabas == NULL) {
         return false;
     }
