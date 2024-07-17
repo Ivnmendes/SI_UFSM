@@ -1,3 +1,6 @@
+#ifndef _arvore_h_
+#define _arvore_h_
+
 #include <stdbool.h>
 
 typedef struct _no arv_t;
@@ -19,3 +22,5 @@ void destroiArvore(arv_t* self); //Libera a memoria alocada para cada no
 bool removeElem(arv_t** self, char* dado); //Remove um elemento, retorna false caso nao encontre nenhum e true caso seja removido
 
 void imprimeArvore(arv_t* self, float altAtual, float largAtual);//Desenha a árvore na tela
+
+#endif

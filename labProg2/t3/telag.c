@@ -104,7 +104,7 @@ void tela_atualiza(void)
   tempo_ultima_tela = tela_relogio();
 
   // limpa todo o canvas em memória, para desenhar a próxima tela
-  al_clear_to_color(cores[preto]);
+  //al_clear_to_color(cores[preto]); //ivan: preferi nao usar essa linha, já que estou usando uma tela branca no fundo e queria continuar mostrando o jogo do usuario na tela final e no pause
 }
 
 
@@ -144,8 +144,7 @@ static void tela_prepara_fonte(int tam)
   }
 
   // carrega uma fonte, para poder escrever na tela
-  //fonte = al_create_builtin_font();
-  fonte = al_load_font("DejaVuSans.ttf", tam, 0);
+  fonte = al_load_font("./arquivos/fonte/DejaVuSans.ttf", tam, 0);
   if (fonte == NULL) {
     al_uninstall_system();
     printf("\n\nERRO FATAL\n");
@@ -233,6 +232,7 @@ char tela_tecla(void)
       switch (k) {
         case ALLEGRO_KEY_ENTER:     return '\n';
         case ALLEGRO_KEY_BACKSPACE: return '\b';
+        case ALLEGRO_KEY_ESCAPE:    return '\e'; //ivan: le esc
       }
       int c = ev.keyboard.unichar;
       return c;
