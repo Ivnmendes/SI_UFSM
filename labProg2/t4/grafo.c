@@ -8,7 +8,6 @@
 
 typedef struct aresta _aresta;
 typedef struct vertice _vertice;
-
 struct aresta {
     _vertice *orig;             //Vertice de origem  
     _vertice *dest;             //Vertice de destino
@@ -23,17 +22,18 @@ struct vertice {
     _aresta *aresta;            //Lista de arestas ligadas ao vertice
     _vertice *prox;             //Proximo vertice da lista
 };
-
-typedef struct _grafo {
+struct _grafo {
     int nVertices;              //Numero de vertices
     int nArestas;               //Numero de arestas
     int tamDadoVertice;         //Tamanho do dado do peso do vertice
     int tamDadoAresta;          //Tamanho do dado do peso da aresta
+    Fila percurso;              //Fila usada pelas funcoes de percurso
+    Fila vizinhoPercurso;       //Fila usada para salvar o vizinho nas funcoes de percurso
     _vertice *v;                //Lista de vertices
 };
 
 Grafo grafo_cria(int tam_no, int tam_aresta) {
-    Grafo self = (Grafo) malloc(sizeof(Grafo));
+    Grafo self = (Grafo) malloc(sizeof(struct _grafo));
     if(self == NULL) {
         printf("Erro: Memoria insuficiente!\n");
         exit(-1);
@@ -43,7 +43,8 @@ Grafo grafo_cria(int tam_no, int tam_aresta) {
     self->nArestas = 0;
     self->tamDadoVertice = tam_no;
     self->tamDadoAresta = tam_aresta;
-
+    self->vizinhoPercurso = fila_cria(4);
+    self->percurso = fila_cria(sizeof(_aresta));
     self->v = NULL;
 
     return self;
@@ -70,6 +71,8 @@ void grafo_destroi(Grafo self) {
         }
     }
 
+    fila_destroi(self->percurso);
+    fila_destroi(self->vizinhoPercurso);
     free(self);
 }
 
@@ -167,7 +170,7 @@ void grafo_remove_no(Grafo self, int no) {
 
             a = verticeAux->aresta;
             auxAresta = NULL;
-            while(v->aresta != NULL) {
+            while(a != NULL) {
                 if (v == a->dest) { //O vertice destino da aresta é igual ao vertice a ser removido
                     if(auxAresta == NULL) { //Se a é a primeira aresta
                         verticeAux->aresta = a->prox;
@@ -344,15 +347,73 @@ bool grafo_valor_aresta(Grafo self, int origem, int destino, void *pdado) {
 }
 
 void grafo_arestas_que_partem(Grafo self, int origem) {
+    //Se existem elementos na fila esvazia ela
+    while(!fila_vazia(self->percurso)) {
+        fila_remove(self->percurso, NULL);
+        fila_remove(self->vizinhoPercurso, NULL);
+    }
 
+    _vertice *verticeOrigem = obtem_vertice_pos(self, origem);
+    _aresta *a = verticeOrigem->aresta;
+    //Enfileira todas as arestas comecadas em origem
+    while(a != NULL) {
+        fila_insere(self->percurso, a);
+        int x = a->dest->identificador;
+        fila_insere(self->vizinhoPercurso, &x);
+        a = a->prox;
+    }
 }
 
 void grafo_arestas_que_chegam(Grafo self, int destino) {
+    //Se existem elementos na fila esvazia ela
+    while(!fila_vazia(self->percurso)) {       
+        fila_remove(self->percurso, NULL);
+        fila_remove(self->vizinhoPercurso, NULL);
+    }
 
+    _vertice *verticeDestino = obtem_vertice_pos(self, destino);
+
+    _vertice *verticeAux = self->v;
+    for(int i = 0; i < self->nVertices; i++) {
+
+        _aresta *a = verticeAux->aresta;
+        while(a != NULL) {
+            if (verticeDestino == a->dest) { //O vertice destino da aresta é igual ao vertice fornecido
+                fila_insere(self->percurso, a); //Enfileira a aresta
+                int x = a->orig->identificador;
+                fila_insere(self->vizinhoPercurso, &x);
+            }
+
+            a = a->prox;
+        }
+
+        verticeAux = verticeAux->prox;
+    }
 }
 
 bool grafo_proxima_aresta(Grafo self, int *vizinho, void *pdado) {
+    if(fila_vazia(self->percurso)) {
+        return false;
+    }
 
+    _aresta *aux = (_aresta*) malloc(sizeof(_aresta));
+    if(aux == NULL) {
+        printf("Erro: Memoria insuficiente!\n");
+        exit(-1);
+    }
+
+    fila_remove(self->percurso, aux);
+    if (aux == NULL) {
+        return false;
+    }
+
+    memmove(pdado, aux->peso, self->tamDadoAresta);
+    
+    int x;
+    fila_remove(self->vizinhoPercurso, &x);
+    *vizinho = x;
+
+    return true;
 }
 
 // Algoritmos
