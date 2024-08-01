@@ -71,4 +71,8 @@ bool grafo_tem_ciclo(Grafo self);
 // quem chama esta função é responsável por destruir a fila.
 Fila grafo_ordem_topologica(Grafo self);
 
+void imprimeNo(Grafo self);
+
+void imprimeArestas(Grafo self);
+
 #endif //_GRAFO_H_
