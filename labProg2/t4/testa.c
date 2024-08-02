@@ -43,7 +43,7 @@ bool teste1() {
     }
 
     grafo_destroi(self);
-    return true;    
+    return (self != NULL) ? true : false;    
 }
 
 bool teste2() {
@@ -90,7 +90,7 @@ bool teste2() {
     }
     
     grafo_destroi(self);
-    return true;    
+    return (self != NULL) ? true : false;    
 }
 
 bool teste3() {
@@ -156,7 +156,7 @@ bool teste3() {
     }
 
     grafo_destroi(self);
-    return true;    
+    return (self != NULL) ? true : false;    
 }
 
 bool teste4() {
@@ -206,7 +206,7 @@ bool teste4() {
     }
     
     grafo_destroi(self);
-    return true;    
+    return (self != NULL) ? true : false;    
 }
 
 bool teste5() {
@@ -233,8 +233,57 @@ bool teste5() {
     y = 15;
     grafo_altera_valor_aresta(self, 2, 4, &y);
 
+    Fila ordem = grafo_ordem_topologica(self);
+
+    if(ordem == NULL) {
+        grafo_destroi(self);
+        return false;
+    }
+
+    fila_remove(ordem, &x);
+    if(x != 0) {
+        grafo_destroi(self);
+        return false;
+    }
+
+    fila_remove(ordem, &x);
+    if(x != 1) {
+        grafo_destroi(self);
+        return false;
+    }
+
+    fila_remove(ordem, &x);
+    if(x != 3) {
+        grafo_destroi(self);
+        return false;
+    }
+    
+    fila_remove(ordem, &x);
+    if(x != 2) {
+        grafo_destroi(self);
+        return false;
+    }
+
+    fila_remove(ordem, &x);
+    if(x != 4) {
+        grafo_destroi(self);
+        return false;
+    }
+
+    fila_destroi(ordem);
+
+    y = 18;
+    grafo_altera_valor_aresta(self, 4, 2, &y);
+
+    ordem = grafo_ordem_topologica(self);
+
+    if(ordem != NULL) {
+        grafo_destroi(self);
+        return false;
+    }    
+
     grafo_destroi(self);
-    return true;   
+    return (self != NULL) ? true : false;   
 }
 
 int main() {
@@ -242,7 +291,7 @@ int main() {
     assert(teste2());
     assert(teste3());
     assert(teste4());
-    //assert(teste5());
+    assert(teste5());
     printf("Passou em todos os testes!\n");
     return 0;
 }

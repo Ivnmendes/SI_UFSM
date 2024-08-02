@@ -456,7 +456,69 @@ bool grafo_tem_ciclo(Grafo self) {
 }
 
 Fila grafo_ordem_topologica(Grafo self) {
+    int grauEntrada[self->nVertices];   //Vetor que armazena o grau de entrada de cada no
 
+    for(int i = 0; i < self->nVertices; i++) {
+        grauEntrada[i] = 0;
+    }
+
+    _vertice *verticeAux = self->v;
+    while (verticeAux != NULL) {
+        _aresta *a = verticeAux->aresta;
+        while (a != NULL) {
+            grauEntrada[a->dest->identificador]++;
+            a = a->prox;
+        }
+        verticeAux = verticeAux->prox;
+    }
+
+    //Inicia uma fila com todos os nós com grau de entrada maior que 0
+    Fila f = fila_cria(4);
+    for(int i = 0; i < self->nVertices; i++) {
+        if(grauEntrada[i] == 0) {
+            _vertice *aux = obtem_vertice_pos(self, i);
+            int x = aux->identificador;
+            fila_insere(f, &x);
+        }
+    }
+
+    //Inicia uma fila que contera os nos em ordem topologica
+    Fila ordem = fila_cria(4);
+    int ordenados = 0;
+
+    //Preenche os nos da fila
+    while(!fila_vazia(f)) {
+        int x;
+        fila_remove(f, &x);
+        _vertice *aux = obtem_vertice_pos(self, x);
+
+        //Decrementa o grau de entrada de cada no destino de uma aresta que parte do no analisado
+        //Insere na fila se o grau de entrada ficou 0
+        _aresta *a = aux->aresta;
+        while (a != NULL) {
+            grauEntrada[a->dest->identificador]--;
+            if (grauEntrada[a->dest->identificador] == 0) {
+                x = a->dest->identificador;
+                fila_insere(f, &x);
+            }
+            a = a->prox;
+        }
+        x = aux->identificador;
+        fila_insere(ordem, &x);
+        ordenados++;
+    }
+
+    fila_destroi(f);
+
+    if(ordenados != self->nVertices) {
+        //Grafo com ciclo, nao tem ordem topologica
+        while(!fila_vazia(ordem)) {       
+            fila_remove(ordem, NULL);
+        }
+        fila_destroi(ordem);
+        return NULL;
+    }
+    return ordem;
 }
 
 void imprimeNo(Grafo self) {
