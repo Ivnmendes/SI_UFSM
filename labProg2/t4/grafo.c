@@ -22,6 +22,7 @@ struct vertice {
     _aresta *aresta;            //Lista de arestas ligadas ao vertice
     _vertice *prox;             //Proximo vertice da lista
 };
+
 struct _grafo {
     int nVertices;              //Numero de vertices
     int nArestas;               //Numero de arestas
@@ -205,7 +206,6 @@ void grafo_remove_no(Grafo self, int no) {
             v = aux->prox;
         }
 
-        //Alerta: debugar esse trecho depois, pode tar errado
         self->nVertices--;
         //Atualiza o indice de todos os vertices seguintes da lista
         for(int i = contPos; i < self->nVertices; i++) {
@@ -331,7 +331,6 @@ bool grafo_valor_aresta(Grafo self, int origem, int destino, void *pdado) {
         //Verifica se a aresta existe
         bool arestaExiste;
         _aresta *a = verticeOrigem->aresta;
-        _aresta *aux = NULL;
         while(a != NULL && a->dest->identificador != destino) { 
             a = a->prox;
         }
@@ -418,8 +417,42 @@ bool grafo_proxima_aresta(Grafo self, int *vizinho, void *pdado) {
 
 // Algoritmos
 
-bool grafo_tem_ciclo(Grafo self) {
+typedef enum { nao_visitado, em_visita, ja_visitado } marca_t;
 
+static bool acha_ciclo(_vertice *v, int nVertices, marca_t marca[nVertices]) {
+    if (marca[v->identificador] == em_visita) return true;
+    if (marca[v->identificador] == ja_visitado) return false;
+    
+    marca[v->identificador] = em_visita;
+
+    _aresta *aresta = v->aresta;
+    while (aresta != NULL) {
+        if (acha_ciclo(aresta->dest, nVertices, marca)) return true;
+        aresta = aresta->prox;
+    }
+    
+    marca[v->identificador] = ja_visitado;
+    return false;
+} 
+
+bool grafo_tem_ciclo(Grafo self) {
+    marca_t marca[self->nVertices];
+
+    for (int i = 0; i < self->nVertices; i++) {
+        marca[i] = nao_visitado;  // todos marcados como não visitados
+    }
+
+    _vertice *v = self->v;
+    while (v != NULL) {
+        if (marca[v->identificador] == nao_visitado) {
+            if (acha_ciclo(v, self->nVertices, marca)) {
+                return true;
+            }
+        }
+        v = v->prox;
+    }
+
+    return false;
 }
 
 Fila grafo_ordem_topologica(Grafo self) {

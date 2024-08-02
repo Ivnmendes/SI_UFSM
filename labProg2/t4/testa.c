@@ -9,25 +9,27 @@
 bool teste1() {
     Grafo self = grafo_cria(sizeof(int), sizeof(int));
     int x = 5;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
+    grafo_insere_no(self, &x);
     x = 10;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
+    grafo_insere_no(self, &x);
     x = 15;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
+    grafo_insere_no(self, &x);
     x = 20;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
+    grafo_insere_no(self, &x);
     x = 25;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
+    grafo_insere_no(self, &x);
     if(grafo_nnos(self) != 5) {
         return false;
     }
     x = 30;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
+    grafo_insere_no(self, &x);
     if(grafo_nnos(self) != 6) {
+        grafo_destroi(self);
         return false;
     }
     grafo_remove_no(self, 5);
     if(grafo_nnos(self) != 5) {
+        grafo_destroi(self);
         return false;
     }
 
@@ -36,9 +38,9 @@ bool teste1() {
     int y;
     grafo_valor_no(self, 3, &y);
     if(y != 100) {
+        grafo_destroi(self);
         return false;
     }
-    imprimeNo(self);
 
     grafo_destroi(self);
     return true;    
@@ -47,16 +49,15 @@ bool teste1() {
 bool teste2() {
     Grafo self = grafo_cria(sizeof(int), sizeof(int));
     int x = 5;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
+    grafo_insere_no(self, &x);
     x = 10;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
+    grafo_insere_no(self, &x);
     x = 15;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
+    grafo_insere_no(self, &x);
     x = 20;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
+    grafo_insere_no(self, &x);
     x = 25;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
-    printf("\n\n");
+    grafo_insere_no(self, &x);
 
     int y = 3;
     grafo_altera_valor_aresta(self, 0, 1, &y);
@@ -70,14 +71,22 @@ bool teste2() {
     grafo_altera_valor_aresta(self, 2, 4, &y);
     y = -1;
     grafo_altera_valor_aresta(self, 1, 2, &y);
-    imprimeArestas(self);
-    printf("\n\n");
-    grafo_altera_valor_aresta(self, 1, 2, NULL);
-    imprimeArestas(self);
 
     int z;
-    if(grafo_valor_aresta(self, 2, 5, &z)) {
-        printf("\nvalor: %d\n", z);
+    if(!grafo_valor_aresta(self, 1, 2, &z) || z != -1) {
+        grafo_destroi(self);
+        return false;
+    }
+    grafo_altera_valor_aresta(self, 1, 2, NULL);
+    if(grafo_valor_aresta(self, 1, 2, &z)) {
+        grafo_destroi(self);
+        return false;
+    }
+
+
+    if(!grafo_valor_aresta(self, 2, 4, &z) || z != 15) {
+        grafo_destroi(self);
+        return false;
     }
     
     grafo_destroi(self);
@@ -87,16 +96,15 @@ bool teste2() {
 bool teste3() {
     Grafo self = grafo_cria(sizeof(int), sizeof(int));
     int x = 5;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
+    grafo_insere_no(self, &x);
     x = 10;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
+    grafo_insere_no(self, &x);
     x = 15;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
+    grafo_insere_no(self, &x);
     x = 20;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
+    grafo_insere_no(self, &x);
     x = 25;
-    printf("Inserido em %d\n", grafo_insere_no(self, &x));
-    printf("\n\n");
+    grafo_insere_no(self, &x);
 
     int y = 3;
     grafo_altera_valor_aresta(self, 0, 1, &y);
@@ -108,38 +116,133 @@ bool teste3() {
     grafo_altera_valor_aresta(self, 3, 2, &y);
     y = 15;
     grafo_altera_valor_aresta(self, 2, 4, &y);
-    imprimeArestas(self);
-    printf("\n\n");
 
     grafo_arestas_que_partem(self, 0);
     int z;
     int k;
+    int i = 0;
     while(grafo_proxima_aresta(self, &z, &k)) {
-        printf("Chega em %d, peso %d\n", z, k);
-    }
+        if(i == 0) {
+            if(z != 1 || k != 3) {
+                grafo_destroi(self);
+                return false;
+            }
+        } else {
+            if(z != 3 || k != 9) {
+                grafo_destroi(self);
+                return false;
+            }
+        }
 
-    printf("\n");
+        i++;
+    }
 
     grafo_arestas_que_chegam(self, 3);
+    i = 0;
     while(grafo_proxima_aresta(self, &z, &k)) {
-        printf("Parte de %d, peso %d\n", z, k);
-    }
-    grafo_destroi(self);
+        if(i == 0) {
+            if(z != 0 || k != 9) {
+                grafo_destroi(self);
+                return false;
+            }
+        } else {
+            if(z != 1 || k != 6) {
+                grafo_destroi(self);
+                return false;
+            }
+        }
 
+        i++;
+    }
+
+    grafo_destroi(self);
     return true;    
 }
 
 bool teste4() {
     Grafo self = grafo_cria(sizeof(int), sizeof(int));
+    int x = 5;
+    grafo_insere_no(self, &x);
+    x = 10;
+    grafo_insere_no(self, &x);
+    x = 15;
+    grafo_insere_no(self, &x);
+    x = 20;
+    grafo_insere_no(self, &x);
+    x = 25;
+    grafo_insere_no(self, &x);
+
+    int y = 3;
+    grafo_altera_valor_aresta(self, 0, 1, &y);
+    y = 6;
+    grafo_altera_valor_aresta(self, 1, 3, &y);
+    y = 9;
+    grafo_altera_valor_aresta(self, 0, 3, &y);
+    y = 12;
+    grafo_altera_valor_aresta(self, 3, 2, &y);
+    y = 15;
+    grafo_altera_valor_aresta(self, 2, 4, &y);
+    y = 20;
+    grafo_altera_valor_aresta(self, 4, 2, &y);
+    
+    if(!grafo_tem_ciclo(self)) {
+        grafo_destroi(self);
+        return false;
+    }
+
+    grafo_altera_valor_aresta(self, 4, 2, NULL);
+
+    if(grafo_tem_ciclo(self)) {
+        grafo_destroi(self);
+        return false;
+    }
+
+    y = 20;
+    grafo_altera_valor_aresta(self, 2, 3, &y);
+
+    if(!grafo_tem_ciclo(self)) {
+        grafo_destroi(self);
+        return false;
+    }
     
     grafo_destroi(self);
     return true;    
 }
 
+bool teste5() {
+    Grafo self = grafo_cria(sizeof(int), sizeof(int));
+    int x = 5;
+    grafo_insere_no(self, &x);
+    x = 10;
+    grafo_insere_no(self, &x);
+    x = 15;
+    grafo_insere_no(self, &x);
+    x = 20;
+    grafo_insere_no(self, &x);
+    x = 25;
+    grafo_insere_no(self, &x);
+
+    int y = 3;
+    grafo_altera_valor_aresta(self, 0, 1, &y);
+    y = 6;
+    grafo_altera_valor_aresta(self, 1, 3, &y);
+    y = 9;
+    grafo_altera_valor_aresta(self, 0, 3, &y);
+    y = 12;
+    grafo_altera_valor_aresta(self, 3, 2, &y);
+    y = 15;
+    grafo_altera_valor_aresta(self, 2, 4, &y);
+
+    grafo_destroi(self);
+    return true;   
+}
+
 int main() {
-    //assert(teste1());
-    //assert(teste2());
+    assert(teste1());
+    assert(teste2());
     assert(teste3());
-    //assert(teste4());
+    assert(teste4());
+    //assert(teste5());
+    printf("Passou em todos os testes!\n");
     return 0;
 }
