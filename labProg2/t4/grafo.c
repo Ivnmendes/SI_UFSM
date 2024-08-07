@@ -140,6 +140,49 @@ int grafo_insere_no(Grafo self, void *pdado) {
     return contPos;
 }
 
+static void remove_arestas_que_partem(Grafo self, _vertice *v) {
+    _aresta *a = v->aresta;
+    _aresta *auxAresta = NULL;
+    while(v->aresta != NULL) {
+        auxAresta = a;
+        a = a->prox;
+        free(auxAresta->peso);
+        free(auxAresta);
+        self->nArestas--;
+    }
+}
+
+static void remove_arestas_que_terminam(Grafo self, _vertice *v) {
+    _aresta *a;
+    _aresta *auxAresta;
+    for(int i = 0; i < self->nVertices; i++) {
+        _vertice *verticeAux = obtem_vertice_pos(self, i);
+
+        a = verticeAux->aresta;
+        auxAresta = NULL;
+        while(a != NULL) {
+            if (v == a->dest) { //O vertice destino da aresta é igual ao vertice a ser removido
+                if(auxAresta == NULL) { //Se a é a primeira aresta
+                    verticeAux->aresta = a->prox;
+                    free(a->peso); 
+                    free(a);
+                } else {
+                    auxAresta->prox = a->prox;
+                    free(a->peso);
+                    free(a);
+                }
+
+                self->nArestas--;
+            }
+
+            auxAresta = a;
+            a = a->prox;
+        }
+
+        verticeAux = verticeAux->prox;
+    }
+}
+
 void grafo_remove_no(Grafo self, int no) {
     if(no >= self->nVertices) {
         printf("Erro: No nao existe!");
@@ -155,43 +198,10 @@ void grafo_remove_no(Grafo self, int no) {
         }
 
         //Remove as arestas que partem do vertice
-        _aresta *a = v->aresta;
-        _aresta *auxAresta = NULL;
-        while(v->aresta != NULL) {
-            auxAresta = a;
-            a = a->prox;
-            free(auxAresta->peso);
-            free(auxAresta);
-            self->nArestas--;
-        }
+        remove_arestas_que_partem(self, v);
 
         //Remove as arestas que terminam no vertice
-        for(int i = 0; i < self->nVertices; i++) {
-            _vertice *verticeAux = obtem_vertice_pos(self, i);
-
-            a = verticeAux->aresta;
-            auxAresta = NULL;
-            while(a != NULL) {
-                if (v == a->dest) { //O vertice destino da aresta é igual ao vertice a ser removido
-                    if(auxAresta == NULL) { //Se a é a primeira aresta
-                        verticeAux->aresta = a->prox;
-                        free(a->peso); 
-                        free(a);
-                    } else {
-                        auxAresta->prox = a->prox;
-                        free(a->peso);
-                        free(a);
-                    }
-
-                    self->nArestas--;
-                }
-
-                auxAresta = a;
-                a = a->prox;
-            }
-
-            verticeAux = verticeAux->prox;
-        }
+        remove_arestas_que_terminam(self, v);
 
         //Libera o vertice e o dado
         if(aux == NULL) {   //Se é o primeiro vertice do grafo
@@ -412,6 +422,8 @@ bool grafo_proxima_aresta(Grafo self, int *vizinho, void *pdado) {
     fila_remove(self->vizinhoPercurso, &x);
     *vizinho = x;
 
+    free(aux);
+
     return true;
 }
 
@@ -523,10 +535,8 @@ Fila grafo_ordem_topologica(Grafo self) {
 
 void imprimeNo(Grafo self) {
     _vertice *v = self->v;
-    int cont = 0;
     while(v != NULL) {
-        printf("i: %d - id: %d - dado: %d\n", cont, v->identificador, *(int*) v->dado);
-        cont++;
+        printf("id: %d - dado: %d\n", v->identificador, *(int*) v->dado);
         v = v->prox;
     }
 }
