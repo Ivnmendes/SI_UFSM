@@ -1,24 +1,18 @@
 /*Algoritmo original do bucket sort*/
+#include "bucketSort.h"
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
-#include <math.h>
-#include <time.h>
 
-/*  source:
+/*                source:
 *       bucket-sort:  https://www.programiz.com/dsa/bucket-sort 
-*       insertion:    https://www.geeksforgeeks.org/insertion-sort-algorithm/
-*   comandos para rodar:
-*       gcc -ansi bucketInsertSort.c -o bucketInSort.out -lm
-*       ./bucketInSort.out 10000 < txts/nAleat.txt > txts/resultBI.txt
 */
 
-void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value);
-void InsertionSort(int arr[], int t);
+void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value, void (*sortFunc)(int[], int));
 int getBucketIndex(int value, int interval, int min_value);
 
 /* Sorting function*/
-void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value) {
+void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value, void (*sortFunc)(int[], int)) {
   int i, j, k;
 
   /* Start buckets*/
@@ -39,6 +33,7 @@ void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value) {
       }
       free(buckets);
       free(bucket_sizes);
+      free(bucket_capacities);
       exit(-1);
     }
   }
@@ -66,7 +61,7 @@ void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value) {
 
 
   for (i = 0; i < nBuckets; ++i) {
-    InsertionSort(buckets[i], bucket_sizes[i]);
+    sortFunc(buckets[i], bucket_sizes[i]);
   }
   
   /* Put sorted elements on arr*/
@@ -87,72 +82,6 @@ void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value) {
   return;
 }
 
-/* Function to sort the elements of each bucket*/
-void InsertionSort(int arr[], int t) {
-  int i;
-  for (i = 1; i < t; ++i) {
-    int key = arr[i];
-    int j = i - 1;
-
-    while (j >= 0 && arr[j] > key) {
-      arr[j + 1] = arr[j];
-      j = j - 1;
-    }
-    arr[j + 1] = key;
-  }
-}
-
 int getBucketIndex(int value, int interval, int min_value) {
   return (value - min_value) / interval;
-}
-
-int main(int argc, char *argv[]){
-    clock_t start, end;
-    double cpu_time_used;
-
-    start = clock();
-
-    int  i;
-    int *vet;
-    int tamVet;
-    char linha[16];
-    int maior = -1;
-
-   if(argc < 2){
-        printf("Uso: %s <numero de elementos a ordenar parcialmente>\n", argv[0]);
-        exit(0);
-    }
-    tamVet = atoi(argv[1]);
-    int nBuckets = (int)sqrt(tamVet);
-    vet = (int *) malloc(sizeof(int) * tamVet);
-
-    for(i=0; i<tamVet; i++){
-        fgets(linha, 16, stdin);
-        sscanf(linha, "%d", &vet[i]);
-        if(vet[i] > maior)
-            maior = vet[i];
-    }
-
-    int max_value = INT_MIN, min_value = INT_MAX;
-    for (i = 0; i < tamVet; i++) {
-      if (vet[i] > max_value) max_value = vet[i];
-      if (vet[i] < min_value) min_value = vet[i];
-    }
-    int interval = ceil((double)(max_value - min_value) / nBuckets);
-
-    BucketSort(vet, tamVet, nBuckets, interval, min_value);
-
-    /*
-    for(i = 0; i < tamVet; i++) {
-      printf("%d\n", vet[i]);
-    }
-    */
-
-   end = clock();
-
-   cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
-
-    printf("Tempo de execução: %f segundos\n", cpu_time_used);
-
-  exit(0);    
 }
