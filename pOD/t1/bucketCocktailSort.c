@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <math.h>
+#include <time.h>
 
 /*  source:
 *       bucket-sort:  https://www.programiz.com/dsa/bucket-sort 
@@ -125,10 +126,15 @@ int getBucketIndex(int value, int interval, int min_value) {
 }
 
 int main(int argc, char *argv[]){
+    clock_t start, end;
+    double cpu_time_used;
+
+    start = clock();
+
     int  i;
     int *vet;
-    char linha[16];
     int tamVet;
+    char linha[16];
     int maior = -1;
 
    if(argc < 2){
@@ -155,8 +161,17 @@ int main(int argc, char *argv[]){
 
     BucketSort(vet, tamVet, nBuckets, interval, min_value);
 
+    /*
     for(i = 0; i < tamVet; i++) {
       printf("%d\n", vet[i]);
     }
-    exit(0);    
+    */
+
+   end = clock();
+
+   cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+
+    printf("Tempo de execução: %f segundos\n", cpu_time_used);
+
+  exit(0);    
 }
