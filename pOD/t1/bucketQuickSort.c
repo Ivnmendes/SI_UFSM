@@ -80,7 +80,6 @@ void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value) {
     }
   }
 
-
   /* Free the allocated memory */
   for (i = 0; i < nBuckets; i++) {
     free(buckets[i]);

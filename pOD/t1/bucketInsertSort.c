@@ -5,98 +5,100 @@
 #include <math.h>
 
 /*  source:
-*       bucket-sort: https://www.programiz.com/dsa/bucket-sort 
+*       bucket-sort:  https://www.programiz.com/dsa/bucket-sort 
+*       insertion:    https://www.geeksforgeeks.org/insertion-sort-algorithm/
+*   comandos para rodar:
+*       gcc -ansi bucketInsertSort.c -o bucketInSort.out -lm
+*       ./bucketInSort.out 10000 < txts/nAleat.txt > resultBI.txt
 */
 
-struct Node {
-  int data;
-  struct Node *next;
-};
-
 void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value);
-struct Node *InsertionSort(struct Node *list);
+void InsertionSort(int arr[], int t);
 int getBucketIndex(int value, int interval, int min_value);
 
 /* Sorting function*/
 void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value) {
-  int i, j;
-  struct Node **buckets;
+  int i, j, k;
 
-  /* Create buckets and allocate memory size*/
-  buckets = (struct Node **)malloc(sizeof(struct Node *) * nBuckets);
+  /* Start buckets*/
+  int **buckets = malloc(nBuckets * sizeof(int *));
+  int *bucket_sizes = calloc(nBuckets, sizeof(int)); 
+  int *bucket_capacities = calloc(nBuckets, sizeof(int)); 
+  if (buckets == NULL || bucket_sizes == NULL || bucket_capacities == NULL) {
+    fprintf(stderr, "Can't allocate memory for buckets.\n");
+    exit(-1);
+  }
 
-  /* Initialize empty buckets*/
+  for (i = 0; i < nBuckets; i++) {
+    buckets[i] = malloc(interval * sizeof(int));
+    if (buckets[i] == NULL) {
+      fprintf(stderr, "Can't allocate memory to %d bucket interval.\n", i);
+      for (j = 0; j < i; j++) {
+        free(buckets[j]);
+      }
+      free(buckets);
+      free(bucket_sizes);
+      exit(-1);
+    }
+  }
+
+  /* Initialize bucket capacities*/
   for (i = 0; i < nBuckets; ++i) {
-    buckets[i] = NULL;
+      bucket_capacities[i] = interval;
   }
 
   /* Fill the buckets with respective elements*/
-  for (i = 0; i < t; ++i) {
-    struct Node *current;
+  for (i = 0; i < t; i++) {
     int pos = getBucketIndex(arr[i], interval, min_value);
-    current = (struct Node *)malloc(sizeof(struct Node));
-    current->data = arr[i];
-    current->next = buckets[pos];
-    buckets[pos] = current;
+
+    if (bucket_sizes[pos] >= bucket_capacities[pos]) {
+        bucket_capacities[pos] = bucket_sizes[pos] + interval;
+        buckets[pos] = realloc(buckets[pos], bucket_capacities[pos] * sizeof(int));
+        if (buckets[pos] == NULL) {
+          printf("Can't allocate memory for bucket %d!\n", pos);
+          exit(1);
+        }
+    }
+
+    buckets[pos][bucket_sizes[pos]++] = arr[i];
   }
 
+
   for (i = 0; i < nBuckets; ++i) {
-    buckets[i] = InsertionSort(buckets[i]);
+    InsertionSort(buckets[i], bucket_sizes[i]);
   }
   
   /* Put sorted elements on arr*/
-  for (j = 0, i = 0; i < nBuckets; ++i) {
-    struct Node *node;
-    node = buckets[i];
-    while (node) {
-      arr[j++] = node->data;
-      node = node->next;
+  for (i = 0, j = 0; i < nBuckets; ++i) {
+    for (k = 0; k < bucket_sizes[i]; k++) {
+      arr[j++] = buckets[i][k];
     }
   }
+
+  /* Free the allocated memory */
+  for (i = 0; i < nBuckets; i++) {
+    free(buckets[i]);
+  }
+
+  free(buckets);
+  free(bucket_sizes);
+
   return;
 }
 
 /* Function to sort the elements of each bucket*/
-struct Node *InsertionSort(struct Node *list) {
-  struct Node *k, *nodeList;
-  if (list == 0 || list->next == 0) {
-    return list;
+void InsertionSort(int arr[], int t) {
+  int i;
+  for (i = 1; i < t; ++i) {
+    int key = arr[i];
+    int j = i - 1;
+
+    while (j >= 0 && arr[j] > key) {
+      arr[j + 1] = arr[j];
+      j = j - 1;
+    }
+    arr[j + 1] = key;
   }
-
-  nodeList = list;
-  k = list->next;
-  nodeList->next = 0;
-  while (k != 0) {
-    struct Node *ptr;
-    if (nodeList->data > k->data) {
-      struct Node *tmp;
-      tmp = k;
-      k = k->next;
-      tmp->next = nodeList;
-      nodeList = tmp;
-      continue;
-    }
-
-    for (ptr = nodeList; ptr->next != 0; ptr = ptr->next) {
-      if (ptr->next->data > k->data)
-        break;
-    }
-
-    if (ptr->next != 0) {
-      struct Node *tmp;
-      tmp = k;
-      k = k->next;
-      tmp->next = ptr->next;
-      ptr->next = tmp;
-      continue;
-    } else {
-      ptr->next = k;
-      k = k->next;
-      ptr->next->next = 0;
-      continue;
-    }
-  }
-  return nodeList;
 }
 
 int getBucketIndex(int value, int interval, int min_value) {
@@ -130,7 +132,7 @@ int main(int argc, char *argv[]){
       if (vet[i] > max_value) max_value = vet[i];
       if (vet[i] < min_value) min_value = vet[i];
     }
-    int interval = ceil((double)(max_value - min_value + 1) / nBuckets);
+    int interval = ceil((double)(max_value - min_value) / nBuckets);
 
     BucketSort(vet, tamVet, nBuckets, interval, min_value);
 
