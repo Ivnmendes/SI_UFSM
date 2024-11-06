@@ -6,12 +6,10 @@
 /*  source:
 *       bucket: https://www.programiz.com/dsa/bucket-sort 
 *       quick:  https://joaoarthurbm.github.io/eda/posts/quick-sort/
+*   rodar:
+*       gcc -ansi bucketQuickSort.c -o buckQcSort.out -lm
+*       ./buckQcSort.out 10000 < ./txts/nAleat.txt > txts/resultBQ.txt
 */
-
-struct Node {
-  int data;
-  struct Node *next;
-};
 
 void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value);
 void QuickSort(int arr[], int left, int right);
@@ -21,72 +19,108 @@ int getBucketIndex(int value, int interval, int min_value);
 
 /* Sorting function*/
 void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value) {
-  int i, j;
-  struct Node **buckets;
+  int i, j, k;
 
-  /* Create buckets and allocate memory size*/
-  buckets = (struct Node **)malloc(sizeof(struct Node *) * nBuckets);
-
-  /* Initialize empty buckets*/
-  for (i = 0; i < nBuckets; ++i) {
-    buckets[i] = NULL;
+  /* Start buckets*/
+  int **buckets = malloc(nBuckets * sizeof(int *));
+  int *bucket_sizes = calloc(nBuckets, sizeof(int)); 
+  int *bucket_capacities = calloc(nBuckets, sizeof(int)); 
+  if (buckets == NULL || bucket_sizes == NULL || bucket_capacities == NULL) {
+    fprintf(stderr, "Can't allocate memory for buckets.\n");
+    exit(-1);
   }
 
-  /* Fill the buckets with respective elements*/
-  for (i = 0; i < t; ++i) {
-    struct Node *current;
-    int pos = getBucketIndex(arr[i], interval, min_value);
-    current = (struct Node *)malloc(sizeof(struct Node));
-    current->data = arr[i];
-    current->next = buckets[pos];
-    buckets[pos] = current;
-  }
-
-  for (i = 0; i < nBuckets; ++i) {
-    buckets[i] = QuickSort(buckets[i], 0, interval - 1);
-  }
-  
-  /* Put sorted elements on arr*/
-  for (j = 0, i = 0; i < nBuckets; ++i) {
-    struct Node *node;
-    node = buckets[i];
-    while (node) {
-      arr[j++] = node->data;
-      node = node->next;
+  for (i = 0; i < nBuckets; i++) {
+    buckets[i] = malloc(interval * sizeof(int));
+    if (buckets[i] == NULL) {
+      fprintf(stderr, "Can't allocate memory to %d bucket interval.\n", i);
+      for (j = 0; j < i; j++) {
+        free(buckets[j]);
+      }
+      free(buckets);
+      free(bucket_sizes);
+      exit(-1);
     }
   }
+
+  /* Initialize bucket capacities*/
+  for (i = 0; i < nBuckets; ++i) {
+      bucket_capacities[i] = interval;
+  }
+
+
+  /* Fill the buckets with respective elements*/
+  for (i = 0; i < t; i++) {
+    int pos = getBucketIndex(arr[i], interval, min_value);
+
+    if (bucket_sizes[pos] >= bucket_capacities[pos]) {
+        bucket_capacities[pos] = bucket_sizes[pos] + interval;
+        buckets[pos] = realloc(buckets[pos], bucket_capacities[pos] * sizeof(int));
+        if (buckets[pos] == NULL) {
+            printf("Can't allocate memory for bucket %d!\n", pos);
+            exit(1);
+        }
+    }
+
+    buckets[pos][bucket_sizes[pos]++] = arr[i];
+  }
+
+  /* Sort each bucket */
+  for (i = 0; i < nBuckets; ++i) {
+    if (bucket_sizes[i] > 0) {
+      QuickSort(buckets[i], 0, bucket_sizes[i] - 1);
+    }
+  }
+  
+
+  /* Put sorted elements on arr*/
+  for (i = 0, j = 0; i < nBuckets; ++i) {
+    for (k = 0; k < bucket_sizes[i]; k++) {
+      arr[j++] = buckets[i][k];
+    }
+  }
+
+
+  /* Free the allocated memory */
+  for (i = 0; i < nBuckets; i++) {
+    free(buckets[i]);
+  }
+
+  free(buckets);
+  free(bucket_sizes);
+
   return;
 }
 
 void QuickSort(int arr[], int left, int right) {
-    if(left < right) {
-        int index_pivot = partition(arr, left, right);
-        QuickSort(arr, left, index_pivot - 1);
-        QuickSort(arr, index_pivot + 1, right);
-    }
+  if(left < right) {
+    int index_pivot = partition(arr, left, right);
+    QuickSort(arr, left, index_pivot - 1);
+    QuickSort(arr, index_pivot + 1, right);
+  }
 }
 
 int partition(int arr[], int left, int right) {
-    int pivot = arr[left];
-    int i = left;
-    int j;
+  int pivot = arr[left];
+  int i = left;
+  int j;
 
-    for(j = left + 1; j <= right; j++) {
-        if (arr[j] <= pivot) {
-            i += 1;
-            swap(arr, i, j);
-        }
+  for(j = left + 1; j <= right; j++) {
+    if (arr[j] <= pivot) {
+      i += 1;
+      swap(arr, i, j);
     }
+  }
 
-    swap(arr, left, i);
+  swap(arr, left, i);
 
-    return i;
+  return i;
 }
 
 void swap(int arr[], int x, int y) {
-    int aux = arr[x];
-    arr[x] = arr[y];
-    arr[y] = aux;
+  int aux = arr[x];
+  arr[x] = arr[y];
+  arr[y] = aux;
 }
 
 int getBucketIndex(int value, int interval, int min_value) {
@@ -106,6 +140,7 @@ int main(int argc, char *argv[]){
     }
     tamVet = atoi(argv[1]);
     int nBuckets = (int)sqrt(tamVet);
+    /*int nBuckets = tamVet / 10;*/
     vet = (int *) malloc(sizeof(int) * tamVet);
 
     for(i=0; i<tamVet; i++){
@@ -120,7 +155,7 @@ int main(int argc, char *argv[]){
       if (vet[i] > max_value) max_value = vet[i];
       if (vet[i] < min_value) min_value = vet[i];
     }
-    int interval = ceil((double)(max_value - min_value + 1) / nBuckets);
+    int interval = ceil((double)(max_value - min_value) / nBuckets);
 
     BucketSort(vet, tamVet, nBuckets, interval, min_value);
 

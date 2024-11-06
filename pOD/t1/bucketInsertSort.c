@@ -4,7 +4,9 @@
 #include <limits.h>
 #include <math.h>
 
-/*source: https://www.programiz.com/dsa/bucket-sort */
+/*  source:
+*       bucket-sort: https://www.programiz.com/dsa/bucket-sort 
+*/
 
 struct Node {
   int data;
@@ -133,7 +135,7 @@ int main(int argc, char *argv[]){
     BucketSort(vet, tamVet, nBuckets, interval, min_value);
 
     for(i = 0; i < tamVet; i++) {
-        printf("%d\n", vet[i]);
+      printf("%d\n", vet[i]);
     }
     exit(0);    
 }
