@@ -1,4 +1,3 @@
-/*Algoritmo original do bucket sort*/
 #include <stdio.h>
 #include <stdlib.h>
 #include <limits.h>
@@ -6,14 +5,15 @@
 
 /*  source:
 *       bucket-sort:  https://www.programiz.com/dsa/bucket-sort 
-*       insertion:    https://www.geeksforgeeks.org/insertion-sort-algorithm/
+*       cocktail:     https://pt.wikipedia.org/wiki/Cocktail_sort
 *   comandos para rodar:
-*       gcc -ansi bucketInsertSort.c -o bucketInSort.out -lm
-*       ./bucketInSort.out 10000 < txts/nAleat.txt > txts/resultBI.txt
+*       gcc -ansi bucketCocktailSort.c -o bucketCtSort.out -lm
+*       ./bucketCtSort.out 10000 < txts/nAleat.txt > txts/resultBC.txt
 */
 
 void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value);
-void InsertionSort(int arr[], int t);
+void CocktailSort(int arr[], int t);
+void swap(int arr[], int x, int y);
 int getBucketIndex(int value, int interval, int min_value);
 
 /* Sorting function*/
@@ -65,7 +65,7 @@ void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value) {
 
 
   for (i = 0; i < nBuckets; ++i) {
-    InsertionSort(buckets[i], bucket_sizes[i]);
+    CocktailSort(buckets[i], bucket_sizes[i]);
   }
   
   /* Put sorted elements on arr*/
@@ -87,18 +87,37 @@ void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value) {
 }
 
 /* Function to sort the elements of each bucket*/
-void InsertionSort(int arr[], int t) {
-  int i;
-  for (i = 1; i < t; ++i) {
-    int key = arr[i];
-    int j = i - 1;
-
-    while (j >= 0 && arr[j] > key) {
-      arr[j + 1] = arr[j];
-      j = j - 1;
+void CocktailSort(int arr[], int t) {
+  int i, bottom, top, swapped, aux;
+  bottom = 0;
+  top = t - 1;
+  swapped = 0;
+  while(!swapped && bottom < top) {
+    swapped = 1;
+    for (i = bottom; i < top; i++) {
+      if (arr[i] > arr[i+1]) {
+        swap(arr, i, i + 1);
+        swapped = 0;
+      }  
     }
-    arr[j + 1] = key;
+
+    top--;
+    
+    for (i = top; i > bottom; i--) {
+      if (arr[i] < arr[i - 1]) {
+        swap(arr, i, i - 1);
+        swapped = 0;
+      }
+    }
+
+    bottom++;
   }
+}
+
+void swap(int arr[], int x, int y) {
+  int aux = arr[x];
+  arr[x] = arr[y];
+  arr[y] = aux;
 }
 
 int getBucketIndex(int value, int interval, int min_value) {
