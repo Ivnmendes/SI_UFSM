@@ -50,8 +50,14 @@ void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value, voi
         bucket_capacities[pos] = bucket_sizes[pos] + interval;
         buckets[pos] = realloc(buckets[pos], bucket_capacities[pos] * sizeof(int));
         if (buckets[pos] == NULL) {
-          printf("Can't allocate memory for bucket %d!\n", pos);
-          exit(1);
+          fprintf(stderr, "Can't allocate memory for bucket %d!\n", pos);
+          for (j = 0; j < pos; j++) {
+            free(buckets[j]);
+          }
+          free(buckets);
+          free(bucket_sizes);
+          free(bucket_capacities);
+          exit(-1);
         }
     }
 

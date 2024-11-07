@@ -124,15 +124,3 @@ static void swap(int arr[], int x, int y) {
   arr[x] = arr[y];
   arr[y] = aux;
 }
-
-#ifdef INSERTION_SORT
-  #define Sort InsertionSort
-#elif defined QUICK_SORT
-  #define Sort QuickSort
-#elif defined COCKTAIL_SORT
-  #define Sort CocktailSort
-#elif defined SHELL_SORT
-  #define Sort ShellSort
-#else
-    #error "Nenhum algoritmo de ordenação definido. Defina INSERTION_SORT ou QUICK_SORT."
-#endif
