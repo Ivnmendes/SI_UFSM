@@ -12,22 +12,25 @@
 *   ShellSort:        http://desenvolvendosoftware.com.br/algoritmos/ordenacao/shell-sort.html
 */
 
-void QuickSort(int arr[], int left, int right);
+static void quick_sort(int arr[], int left, int right);
+static void swap(int arr[], int x, int y);
+static int partition(int arr[], int left, int right);
+
+void QuickSort(int arr[], int t);
 void CocktailSort(int arr[], int t);
 void InsertionSort(int arr[], int t);
 void ShellSort(int arr[], int t);
-int partition(int arr[], int left, int right);
-void swap(int arr[], int x, int y);
 
-void quick_sort(int arr[], int t) {
-  QuickSort(arr, 0, t - 1);
+void QuickSort(int arr[], int t) {
+  int i;
+  quick_sort(arr, 0, t - 1);
 }
 
-void QuickSort(int arr[], int left, int right) {
+static void quick_sort(int arr[], int left, int right) {
   if(left < right) {
     int index_pivot = partition(arr, left, right);
-    QuickSort(arr, left, index_pivot - 1);
-    QuickSort(arr, index_pivot + 1, right);
+    quick_sort(arr, left, index_pivot - 1);
+    quick_sort(arr, index_pivot + 1, right);
   }
 }
 
@@ -70,6 +73,7 @@ void InsertionSort(int arr[], int t) {
     }
     arr[j + 1] = key;
   }
+
 }
 
 void ShellSort(int arr[], int t) {
@@ -98,7 +102,7 @@ void ShellSort(int arr[], int t) {
   }
 }
 
-int partition(int arr[], int left, int right) {
+static int partition(int arr[], int left, int right) {
   int pivot = arr[left];
   int i = left;
   int j;
@@ -115,7 +119,7 @@ int partition(int arr[], int left, int right) {
   return i;
 }
 
-void swap(int arr[], int x, int y) {
+static void swap(int arr[], int x, int y) {
   int aux = arr[x];
   arr[x] = arr[y];
   arr[y] = aux;

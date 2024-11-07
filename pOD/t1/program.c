@@ -7,6 +7,22 @@
 #include "bucketSort.h"
 #include "sort.h"
 
+#ifdef INSERTION_SORT
+  #define Sort InsertionSort
+  #define SORT_NAME "InsertionSort"
+#elif defined QUICK_SORT
+  #define Sort QuickSort
+  #define SORT_NAME "QuickSort"
+#elif defined COCKTAIL_SORT
+  #define Sort CocktailSort
+  #define SORT_NAME "CocktailSort"
+#elif defined SHELL_SORT
+  #define Sort ShellSort
+  #define SORT_NAME "ShellSort"
+#else
+  #error "Nenhum algoritmo de ordenação definido. Defina INSERTION_SORT ou QUICK_SORT."
+#endif
+
 /*          Como rodar
 *   gcc -ansi -DINSERTION_SORT -o program.out program.c bucketSort.c sort.c -lm
 *       No lugar de -DInsertion_Sort passe uma das seguintes flags
@@ -14,6 +30,7 @@
 *   Para executar ./program.out NDeElementos < txtDeEntrada.txt
 */
 int main(int argc, char *argv[]){
+    printf("\n%s: %d numeros\n", SORT_NAME, atoi(argv[1]));
     clock_t start, end;
     double cpu_time_used;
 
@@ -55,13 +72,10 @@ int main(int argc, char *argv[]){
 
     printf("Tempo de execução: %f segundos\n", cpu_time_used);
 
-    /*
-    for(i = 0; i < tamVet; i++) {
+    /*for(i = 0; i < tamVet; i++) {
       printf("%d\n", vet[i]);
-    }
-    */
-
-   /**/
+    }*/
+   
     int isSorted = 1;
     i = 0;
     while(i < tamVet - 1 && isSorted) {

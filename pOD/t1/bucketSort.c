@@ -9,7 +9,7 @@
 */
 
 void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value, void (*sortFunc)(int[], int));
-int getBucketIndex(int value, int interval, int min_value);
+int getBucketIndex(int value, int interval, int min_value, int nBuckets);
 
 /* Sorting function*/
 void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value, void (*sortFunc)(int[], int)) {
@@ -45,8 +45,7 @@ void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value, voi
 
   /* Fill the buckets with respective elements*/
   for (i = 0; i < t; i++) {
-    int pos = getBucketIndex(arr[i], interval, min_value);
-
+    int pos = getBucketIndex(arr[i], interval, min_value, nBuckets);
     if (bucket_sizes[pos] >= bucket_capacities[pos]) {
         bucket_capacities[pos] = bucket_sizes[pos] + interval;
         buckets[pos] = realloc(buckets[pos], bucket_capacities[pos] * sizeof(int));
@@ -59,13 +58,13 @@ void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value, voi
     buckets[pos][bucket_sizes[pos]++] = arr[i];
   }
 
-
-  for (i = 0; i < nBuckets; ++i) {
+  for (i = 0; i < nBuckets; i++) {
     sortFunc(buckets[i], bucket_sizes[i]);
   }
   
+
   /* Put sorted elements on arr*/
-  for (i = 0, j = 0; i < nBuckets; ++i) {
+  for (i = 0, j = 0; i < nBuckets; i++) {
     for (k = 0; k < bucket_sizes[i]; k++) {
       arr[j++] = buckets[i][k];
     }
@@ -78,10 +77,14 @@ void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value, voi
 
   free(buckets);
   free(bucket_sizes);
-
+  free(bucket_capacities);
   return;
 }
 
-int getBucketIndex(int value, int interval, int min_value) {
-  return (value - min_value) / interval;
+int getBucketIndex(int value, int interval, int min_value, int nBuckets) {
+  int pos = (value - min_value) / interval;
+  if (pos >= nBuckets) {
+    pos = nBuckets - 1; 
+  }
+  return pos;
 }
