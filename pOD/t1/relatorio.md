@@ -18,6 +18,11 @@
     - [QuickSort](#quicksort-1)
     - [CocktailSort](#cocktailsort-1)
     - [ShellSort](#shellsort-1)
+  - [Desempenho dos algortimos](#desempenho-dos-algortimos)
+    - [Números aleatórios](#números-aleatórios)
+    - [Números parcialmente ordenados](#números-parcialmente-ordenados)
+    - [Números aleatórios de 0 a 10000](#números-aleatórios-de-0-a-10000)
+    - [Análise dos resultados](#análise-dos-resultados)
 
 ## Algoritmos
 
@@ -214,3 +219,44 @@ Como planejava testar com números parcialmente ordenados, escolhi esse algoritm
 ### ShellSort
 
 Estava curioso em como ele ia se sair em relação ao quick sort e ao insertion sort.
+
+## Desempenho dos algortimos
+
+O método para medir desempenho usado foi o número de segundos que programa levou para executar.
+
+### Números aleatórios
+
+|Algoritmo|100000 elementos|1000000 elementos|10000000 elementos| 10000000 elementos|
+|-|-|-|-|-|
+|InsertionSort|0.028271s|0.609261s|16.371044s|498.198622s|
+|ShellSort|0.029486s|0.628780s|16.803243s|499.845034s|
+|CocktailSort|0.066917s|1.725780s|51.475220s|1820.235966s\*|
+|QuickSort|0.018061s|0.199769s|2.195495s|23.988953s|
+
+- \* **obs**: Deixei os testes rodando por mais ou menos 8 horas. Como não estava em casa durante a execução, não tenho certeza se esse tempo exibido pelo programa foi o tempo que ele levou.
+
+### Números parcialmente ordenados
+
+|Algoritmo|100000 elementos|1000000 elementos|10000000 elementos| 10000000 elementos|
+|-|-|-|-|-|
+|InsertionSort|0.013655s|0.139124s|1.465611s|13.831454s|
+|ShellSort|0.013782s|0.140227s|1.465443s|13.714257s|
+|CocktailSort|0.014412s|0.149534s|1.580787s|14.745930s|
+|QuickSort|0.021823s|0.371489s|8.528898s|xxx\*|
+
+- \* **obs**: Assim como no caso anterior, o resultado desse caso foi inconclusivo, pois, a partir do tempo que os outros casos geraram, é possível chegar a duas conclusões, ou a execução do código foi comprometida ou a ordenação de 100 milhões de elementos parcialmente ordenados levou mais de 6 horas, já que quando finalizei os testes o algoritmo ainda estava travado nessa etapa.
+
+### Números aleatórios de 0 a 10000
+
+|Algoritmo|100000 elementos|1000000 elementos|10000000 elementos|
+|-|-|-|-|
+|InsertionSort|0.028096s|0.617154s|17.292353s|
+|ShellSort|0.030610s|0.627418s|17.010757s|
+|CocktailSort|0.066577s|1.766394s|58.346611s|
+|QuickSort|0.020016s|0.424564s|27.658516s|
+
+### Análise dos resultados
+
+Em todos os casos os algoritmos se comportaram perto do esperado.
+
+Nos números aleatórios
