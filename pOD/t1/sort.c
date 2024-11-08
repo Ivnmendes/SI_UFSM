@@ -22,15 +22,14 @@ void InsertionSort(int arr[], int t);
 void ShellSort(int arr[], int t);
 
 void QuickSort(int arr[], int t) {
-  int i;
   quick_sort(arr, 0, t - 1);
 }
 
 static void quick_sort(int arr[], int left, int right) {
   if(left < right) {
-    int index_pivot = partition(arr, left, right);
-    quick_sort(arr, left, index_pivot - 1);
-    quick_sort(arr, index_pivot + 1, right);
+    int indexPivot = partition(arr, left, right);
+    quick_sort(arr, left, indexPivot - 1);
+    quick_sort(arr, indexPivot + 1, right);
   }
 }
 

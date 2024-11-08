@@ -29,6 +29,9 @@
 *           -DINSERTION_SORT, -DQUICK_SORT, -DCOCKTAIL_SORT, -DSHELL_SORT
 *   Para executar ./program.out NDeElementos < txtDeEntrada.txt
 */
+
+
+
 int main(int argc, char *argv[]){
   printf("\n%s: %d numeros\n", SORT_NAME, atoi(argv[1]));
   clock_t start, end;
@@ -47,7 +50,6 @@ int main(int argc, char *argv[]){
     exit(0);
   }
   tamVet = atoi(argv[1]);
-  int nBuckets = (int)sqrt(tamVet);
   vet = (int *) malloc(sizeof(int) * tamVet);
 
   for(i=0; i<tamVet; i++){
@@ -58,18 +60,7 @@ int main(int argc, char *argv[]){
     }
   }
 
-  int max_value = INT_MIN, min_value = INT_MAX;
-  for (i = 0; i < tamVet; i++) {
-    if (vet[i] > max_value) {
-      max_value = vet[i];
-    } 
-    if (vet[i] < min_value) {
-      min_value = vet[i];
-    } 
-  }
-  int interval = ceil((double)(max_value - min_value) / nBuckets);
-
-  BucketSort(vet, tamVet, nBuckets, interval, min_value, Sort);
+  BucketSort(vet, tamVet, Sort);
 
   end = clock();
 

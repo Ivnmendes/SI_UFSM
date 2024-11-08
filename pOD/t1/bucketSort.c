@@ -3,17 +3,33 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <limits.h>
+#include <math.h>
 
 /*                source:
 *       bucket-sort:  https://www.programiz.com/dsa/bucket-sort 
 */
 
-void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value, void (*sortFunc)(int[], int));
-int getBucketIndex(int value, int interval, int min_value, int nBuckets);
+void BucketSort(int arr[], int t, void (*sortFunc)(int[], int));
+static int getBucketIndex(int value, int interval, int min_value, int nBuckets);
+static void configureBuckets(int tamVet, int min_value, int max_value, int *nBuckets, int *interval);
 
 /* Sorting function*/
-void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value, void (*sortFunc)(int[], int)) {
+void BucketSort(int arr[], int t, void (*sortFunc)(int[], int)) {
   int i, j, k;
+
+  int max_value = INT_MIN, min_value = INT_MAX;
+  for (i = 0; i < t; i++) {
+    if (arr[i] > max_value) {
+      max_value = arr[i];
+    } 
+    if (arr[i] < min_value) {
+      min_value = arr[i];
+    } 
+  }
+
+  int nBuckets, interval;
+  configureBuckets(t, min_value, max_value, &nBuckets, &interval);
 
   /* Start buckets*/
   int **buckets = malloc(nBuckets * sizeof(int *));
@@ -87,10 +103,24 @@ void BucketSort(int arr[], int t, int nBuckets, int interval, int min_value, voi
   return;
 }
 
-int getBucketIndex(int value, int interval, int min_value, int nBuckets) {
+static int getBucketIndex(int value, int interval, int min_value, int nBuckets) {
   int pos = (value - min_value) / interval;
   if (pos >= nBuckets) {
     pos = nBuckets - 1; 
   }
   return pos;
+}
+
+static void configureBuckets(int tamVet, int min_value, int max_value, int *nBuckets, int *interval) {
+  int targetPerBucket = (int)sqrt(tamVet);
+  int range = max_value - min_value + 1;
+
+  *nBuckets = (tamVet / targetPerBucket);
+  if (*nBuckets > range) {
+    *nBuckets = range;
+  } else if (*nBuckets < 1) {
+    *nBuckets = 1;
+  }
+
+  *interval = (int)ceil((double)range / *nBuckets);
 }
