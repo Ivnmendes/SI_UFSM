@@ -20,7 +20,7 @@
   #define Sort ShellSort
   #define SORT_NAME "ShellSort"
 #else
-  #error "Nenhum algoritmo de ordenação definido. Defina INSERTION_SORT ou QUICK_SORT."
+  #error "Nenhum algoritmo de ordenação definido. Defina INSERTION_SORT QUICK_SORT, COCKTAIL_SORT ou SHELL_SORT ."
 #endif
 
 /*          Como rodar
@@ -30,12 +30,10 @@
 *   Para executar ./program.out NDeElementos < txtDeEntrada.txt
 */
 
-
-
 int main(int argc, char *argv[]){
   printf("\n%s: %d numeros\n", SORT_NAME, atoi(argv[1]));
   clock_t start, end;
-  double cpu_time_used;
+  double cpuTimeUsed;
 
   start = clock();
 
@@ -64,9 +62,9 @@ int main(int argc, char *argv[]){
 
   end = clock();
 
-  cpu_time_used = ((double)(end - start)) / CLOCKS_PER_SEC;
+  cpuTimeUsed = ((double)(end - start)) / CLOCKS_PER_SEC;
 
-  printf("Tempo de execução: %f segundos\n", cpu_time_used);
+  printf("Tempo de execução: %f segundos\n", cpuTimeUsed);
 
   exit(0);    
 }

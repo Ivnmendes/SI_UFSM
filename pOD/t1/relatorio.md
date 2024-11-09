@@ -23,6 +23,7 @@
     - [Números parcialmente ordenados](#números-parcialmente-ordenados)
     - [Números aleatórios de 0 a 10000](#números-aleatórios-de-0-a-10000)
     - [Análise dos resultados](#análise-dos-resultados)
+  - [Referências](#referências)
 
 ## Algoritmos
 
@@ -259,4 +260,16 @@ O método para medir desempenho usado foi o número de segundos que programa lev
 
 Em todos os casos os algoritmos se comportaram perto do esperado.
 
-Nos números aleatórios
+O quicksort se destacou com números aleatórios quando o número de elementos se tornou grande, assim como previsto. Da mesma maneira, o cocktail sort se saiu muito mal quando os elementos passaram de 10 milhões. O insertion sort e o shell sort tiveram desempenhos parecidos, já que o shell sort é uma maneira diferente de implementar o insertion sort (teoricamente mais eficiente). O fato de ambos terem apresentado um tempo de execução parecido pode ter ocorrido devido à escolha de "gaps" no algoritmo usado do shell sort.
+
+Já com números parcialmente ordenados a situalção muda um pouco, com o quick sort perdendo desempenho enquanto os outros algoritmos se destacam.
+
+Rodei um teste com números aleatórios de 0 a 10000 para verificar se a lógica para distribuição de buckets e intervalos estava eficiente, pois com um intervalo pequeno de números para uma grande quantidade de elementos levaria ao bucket sort a perder perfomance com baldes mal distribuidos, usando poucos dos baldes alocados com muitos elementos em cada. O código teve uma pequena perda de desempenho, mas nada muito expressivo. A exceção foi o quick sort, que teve uma grande perda de desempenho nesse caso. Provavelmente esse resultado ocorreu devido ao grande número de elementos repetidos que ocorre nesse caso, gerando um particionamento desequilibrado e levando o algoritmo ao pior caso (O(n²)).
+
+## Referências
+
+1. Bucket Sort: <https://www.programiz.com/dsa/bucket-sort>
+2. Cocktail Sort: <https://pt.wikipedia.org/wiki/Cocktail_sort>
+3. Insertion Sort: <https://www.geeksforgeeks.org/insertion-sort-algorithm/>
+4. Quick Sort: <https://joaoarthurbm.github.io/eda/posts/quick-sort/>
+5. Shell Sort: <http://desenvolvendosoftware.com.br/algoritmos/ordenacao/shell-sort.html>

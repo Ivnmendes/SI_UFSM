@@ -12,7 +12,7 @@
 *   ShellSort:        http://desenvolvendosoftware.com.br/algoritmos/ordenacao/shell-sort.html
 */
 
-static void quick_sort(int arr[], int left, int right);
+static void quickSort(int arr[], int left, int right);
 static void swap(int arr[], int x, int y);
 static int partition(int arr[], int left, int right);
 
@@ -22,14 +22,14 @@ void InsertionSort(int arr[], int t);
 void ShellSort(int arr[], int t);
 
 void QuickSort(int arr[], int t) {
-  quick_sort(arr, 0, t - 1);
+  quickSort(arr, 0, t - 1);
 }
 
-static void quick_sort(int arr[], int left, int right) {
+static void quickSort(int arr[], int left, int right) {
   if(left < right) {
     int indexPivot = partition(arr, left, right);
-    quick_sort(arr, left, indexPivot - 1);
-    quick_sort(arr, indexPivot + 1, right);
+    quickSort(arr, left, indexPivot - 1);
+    quickSort(arr, indexPivot + 1, right);
   }
 }
 

@@ -11,31 +11,31 @@
 */
 
 void BucketSort(int arr[], int t, void (*sortFunc)(int[], int));
-static int getBucketIndex(int value, int interval, int min_value, int nBuckets);
-static void configureBuckets(int tamVet, int min_value, int max_value, int *nBuckets, int *interval);
+static int getBucketIndex(int value, int interval, int minValue, int nBuckets);
+static void configureBuckets(int tamVet, int minValue, int maxValue, int *nBuckets, int *interval);
 
 /* Sorting function*/
 void BucketSort(int arr[], int t, void (*sortFunc)(int[], int)) {
   int i, j, k;
 
-  int max_value = INT_MIN, min_value = INT_MAX;
+  int maxValue = INT_MIN, minValue = INT_MAX;
   for (i = 0; i < t; i++) {
-    if (arr[i] > max_value) {
-      max_value = arr[i];
+    if (arr[i] > maxValue) {
+      maxValue = arr[i];
     } 
-    if (arr[i] < min_value) {
-      min_value = arr[i];
+    if (arr[i] < minValue) {
+      minValue = arr[i];
     } 
   }
 
   int nBuckets, interval;
-  configureBuckets(t, min_value, max_value, &nBuckets, &interval);
+  configureBuckets(t, minValue, maxValue, &nBuckets, &interval);
 
   /* Start buckets*/
   int **buckets = malloc(nBuckets * sizeof(int *));
-  int *bucket_sizes = calloc(nBuckets, sizeof(int)); 
-  int *bucket_capacities = calloc(nBuckets, sizeof(int)); 
-  if (buckets == NULL || bucket_sizes == NULL || bucket_capacities == NULL) {
+  int *bucketSizes = calloc(nBuckets, sizeof(int)); 
+  int *bucketCapacities = calloc(nBuckets, sizeof(int)); 
+  if (buckets == NULL || bucketSizes == NULL || bucketCapacities == NULL) {
     fprintf(stderr, "Can't allocate memory for buckets.\n");
     exit(-1);
   }
@@ -48,46 +48,46 @@ void BucketSort(int arr[], int t, void (*sortFunc)(int[], int)) {
         free(buckets[j]);
       }
       free(buckets);
-      free(bucket_sizes);
-      free(bucket_capacities);
+      free(bucketSizes);
+      free(bucketCapacities);
       exit(-1);
     }
   }
 
   /* Initialize bucket capacities*/
   for (i = 0; i < nBuckets; ++i) {
-      bucket_capacities[i] = interval;
+      bucketCapacities[i] = interval;
   }
 
   /* Fill the buckets with respective elements*/
   for (i = 0; i < t; i++) {
-    int pos = getBucketIndex(arr[i], interval, min_value, nBuckets);
-    if (bucket_sizes[pos] >= bucket_capacities[pos]) {
-        bucket_capacities[pos] = bucket_sizes[pos] + interval;
-        buckets[pos] = realloc(buckets[pos], bucket_capacities[pos] * sizeof(int));
+    int pos = getBucketIndex(arr[i], interval, minValue, nBuckets);
+    if (bucketSizes[pos] >= bucketCapacities[pos]) {
+        bucketCapacities[pos] = bucketSizes[pos] + interval;
+        buckets[pos] = realloc(buckets[pos], bucketCapacities[pos] * sizeof(int));
         if (buckets[pos] == NULL) {
           fprintf(stderr, "Can't allocate memory for bucket %d!\n", pos);
           for (j = 0; j < pos; j++) {
             free(buckets[j]);
           }
           free(buckets);
-          free(bucket_sizes);
-          free(bucket_capacities);
+          free(bucketSizes);
+          free(bucketCapacities);
           exit(-1);
         }
     }
 
-    buckets[pos][bucket_sizes[pos]++] = arr[i];
+    buckets[pos][bucketSizes[pos]++] = arr[i];
   }
 
   for (i = 0; i < nBuckets; i++) {
-    sortFunc(buckets[i], bucket_sizes[i]);
+    sortFunc(buckets[i], bucketSizes[i]);
   }
   
 
   /* Put sorted elements on arr*/
   for (i = 0, j = 0; i < nBuckets; i++) {
-    for (k = 0; k < bucket_sizes[i]; k++) {
+    for (k = 0; k < bucketSizes[i]; k++) {
       arr[j++] = buckets[i][k];
     }
   }
@@ -98,22 +98,22 @@ void BucketSort(int arr[], int t, void (*sortFunc)(int[], int)) {
   }
 
   free(buckets);
-  free(bucket_sizes);
-  free(bucket_capacities);
+  free(bucketSizes);
+  free(bucketCapacities);
   return;
 }
 
-static int getBucketIndex(int value, int interval, int min_value, int nBuckets) {
-  int pos = (value - min_value) / interval;
+static int getBucketIndex(int value, int interval, int minValue, int nBuckets) {
+  int pos = (value - minValue) / interval;
   if (pos >= nBuckets) {
     pos = nBuckets - 1; 
   }
   return pos;
 }
 
-static void configureBuckets(int tamVet, int min_value, int max_value, int *nBuckets, int *interval) {
+static void configureBuckets(int tamVet, int minValue, int maxValue, int *nBuckets, int *interval) {
   int targetPerBucket = (int)sqrt(tamVet);
-  int range = max_value - min_value + 1;
+  int range = maxValue - minValue + 1;
 
   *nBuckets = (tamVet / targetPerBucket);
   if (*nBuckets > range) {
