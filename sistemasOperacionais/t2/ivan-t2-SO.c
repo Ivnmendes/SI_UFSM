@@ -16,11 +16,6 @@ int isPositiveInteger(const char *str) {
     return atoi(str) > 0;
 }
 
-int fibonacci(int n) {
-    if (n <= 1) return n;
-    return fibonacci(n - 1) + fibonacci(n - 2);
-}
-
 void spawnProcessTree(int height, int maxHeight) {
     if (height > maxHeight) { return; }
 
@@ -33,7 +28,6 @@ void spawnProcessTree(int height, int maxHeight) {
     if (leftPID == 0) {
         printf("Filho esquerdo. PID: %d, Pai PID: %d\n", getpid(), getppid());
         spawnProcessTree(height + 1, maxHeight);
-        fibonacci(30);
         printf("Finalizando trabalho...\n");
         exit(0);
     } 
@@ -47,7 +41,6 @@ void spawnProcessTree(int height, int maxHeight) {
     if (rightPID == 0) {
         printf("Filho direito. PID: %d, Pai PID: %d\n", getpid(), getppid());
         spawnProcessTree(height + 1, maxHeight);
-        fibonacci(30);
         printf("Finalizando trabalho...\n");
         exit(0);
     } 
@@ -68,7 +61,6 @@ void spawnProcessChain(int size, int maxSize) {
     if (processID == 0) {
         spawnProcessChain(size + 1, maxSize);
         printf("Filho. PID: %d, Pai PID: %d\n", getpid(), getppid());
-        fibonacci(30);
         printf("Finalizando trabalho...\n");
         exit(0);
     }
@@ -88,24 +80,30 @@ int main(int argc, char *argv[]) {
     }
 
     int maxHeight = atoi(argv[1]);
-    struct timespec start_t, end_t;
+    // struct timespec start_t, end_t;
+    clock_t start_t, end_t;
     double total_t;
 
     if (strcmp(argv[2], "tree") == 0) {
-        clock_gettime(CLOCK_REALTIME, &start_t);
+        // clock_gettime(CLOCK_REALTIME, &start_t);
+        start_t = clock();
         spawnProcessTree(1, maxHeight);
-        clock_gettime(CLOCK_REALTIME, &end_t);
+        end_t = clock();
+        // clock_gettime(CLOCK_REALTIME, &end_t);
     } else if (strcmp(argv[2], "chain") == 0) {
         maxHeight = pow(2, (maxHeight+1)) - 2; // -2, pois o processo inicial é o próprio programa
-        clock_gettime(CLOCK_REALTIME, &start_t);
+        // clock_gettime(CLOCK_REALTIME, &start_t);
+        start_t = clock();
         spawnProcessChain(1, maxHeight);
-        clock_gettime(CLOCK_REALTIME, &end_t);
+        end_t = clock();
+        // clock_gettime(CLOCK_REALTIME, &end_t);
     } else {
         fprintf(stderr, "Erro: tipo de estrutura desconhecida. Use 'tree' ou 'chain'.\n");
         return 1;
     }
 
-    total_t = (end_t.tv_sec - start_t.tv_sec) + (end_t.tv_nsec - start_t.tv_nsec) / 1e9;
+    // total_t = (end_t.tv_sec - start_t.tv_sec) + (end_t.tv_nsec - start_t.tv_nsec) / 1e9;
+    total_t = (double)(end_t - start_t) / CLOCKS_PER_SEC;
     printf("Tempo transcorrido: %f\n", total_t);
     return 0;
 }

@@ -1,420 +1,420 @@
 Execução 1:
-Filho esquerdo. PID: 16971, Pai PID: 16970
-Filho esquerdo. PID: 16973, Pai PID: 16971
+Filho esquerdo. PID: 21175, Pai PID: 21174
+Filho esquerdo. PID: 21177, Pai PID: 21175
 Finalizando trabalho...
-Filho direito. PID: 16972, Pai PID: 16970
-Filho esquerdo. PID: 16974, Pai PID: 16972
+Filho esquerdo. PID: 21175, Pai PID: 21174
+Filho direito. PID: 21178, Pai PID: 21175
 Finalizando trabalho...
-Filho direito. PID: 16972, Pai PID: 16970
-Filho direito. PID: 16976, Pai PID: 16972
+Filho direito. PID: 21176, Pai PID: 21174
+Filho esquerdo. PID: 21179, Pai PID: 21176
 Finalizando trabalho...
-Filho esquerdo. PID: 16971, Pai PID: 16970
-Filho direito. PID: 16975, Pai PID: 16971
+Filho direito. PID: 21176, Pai PID: 21174
+Filho direito. PID: 21180, Pai PID: 21176
 Finalizando trabalho...
-Filho direito. PID: 16972, Pai PID: 16970
+Filho direito. PID: 21176, Pai PID: 21174
 Finalizando trabalho...
-Filho esquerdo. PID: 16971, Pai PID: 16970
+Filho esquerdo. PID: 21175, Pai PID: 21174
 Finalizando trabalho...
-Tempo transcorrido: 0.019021
+Tempo transcorrido: 0.000164
 
 -----------------------------
 
 Execução 2:
-Filho direito. PID: 16979, Pai PID: 16977
-Filho esquerdo. PID: 16981, Pai PID: 16979
+Filho esquerdo. PID: 21182, Pai PID: 21181
+Filho esquerdo. PID: 21184, Pai PID: 21182
 Finalizando trabalho...
-Filho direito. PID: 16979, Pai PID: 16977
-Filho direito. PID: 16983, Pai PID: 16979
+Filho esquerdo. PID: 21182, Pai PID: 21181
+Filho direito. PID: 21185, Pai PID: 21182
 Finalizando trabalho...
-Filho esquerdo. PID: 16978, Pai PID: 16977
-Filho direito. PID: 16982, Pai PID: 16978
+Filho direito. PID: 21183, Pai PID: 21181
+Filho esquerdo. PID: 21186, Pai PID: 21183
 Finalizando trabalho...
-Filho esquerdo. PID: 16978, Pai PID: 16977
-Filho esquerdo. PID: 16980, Pai PID: 16978
+Filho esquerdo. PID: 21182, Pai PID: 21181
 Finalizando trabalho...
-Filho direito. PID: 16979, Pai PID: 16977
+Filho direito. PID: 21183, Pai PID: 21181
+Filho direito. PID: 21187, Pai PID: 21183
 Finalizando trabalho...
-Filho esquerdo. PID: 16978, Pai PID: 16977
+Filho direito. PID: 21183, Pai PID: 21181
 Finalizando trabalho...
-Tempo transcorrido: 0.015358
+Tempo transcorrido: 0.000130
 
 -----------------------------
 
 Execução 3:
-Filho direito. PID: 16986, Pai PID: 16984
-Filho esquerdo. PID: 16988, Pai PID: 16986
+Filho esquerdo. PID: 21189, Pai PID: 21188
+Filho esquerdo. PID: 21191, Pai PID: 21189
 Finalizando trabalho...
-Filho esquerdo. PID: 16985, Pai PID: 16984
-Filho direito. PID: 16989, Pai PID: 16985
+Filho esquerdo. PID: 21189, Pai PID: 21188
+Filho direito. PID: 21193, Pai PID: 21189
 Finalizando trabalho...
-Filho esquerdo. PID: 16985, Pai PID: 16984
-Filho esquerdo. PID: 16987, Pai PID: 16985
+Filho direito. PID: 21190, Pai PID: 21188
+Filho esquerdo. PID: 21192, Pai PID: 21190
 Finalizando trabalho...
-Filho direito. PID: 16986, Pai PID: 16984
-Filho direito. PID: 16990, Pai PID: 16986
+Filho direito. PID: 21190, Pai PID: 21188
+Filho direito. PID: 21194, Pai PID: 21190
 Finalizando trabalho...
-Filho esquerdo. PID: 16985, Pai PID: 16984
+Filho esquerdo. PID: 21189, Pai PID: 21188
 Finalizando trabalho...
-Filho direito. PID: 16986, Pai PID: 16984
+Filho direito. PID: 21190, Pai PID: 21188
 Finalizando trabalho...
-Tempo transcorrido: 0.014811
+Tempo transcorrido: 0.000119
 
 -----------------------------
 
 Execução 4:
-Filho esquerdo. PID: 16992, Pai PID: 16991
-Filho direito. PID: 16996, Pai PID: 16992
+Filho esquerdo. PID: 21196, Pai PID: 21195
+Filho esquerdo. PID: 21198, Pai PID: 21196
 Finalizando trabalho...
-Filho esquerdo. PID: 16992, Pai PID: 16991
-Filho esquerdo. PID: 16994, Pai PID: 16992
+Filho direito. PID: 21197, Pai PID: 21195
+Filho esquerdo. PID: 21199, Pai PID: 21197
 Finalizando trabalho...
-Filho direito. PID: 16993, Pai PID: 16991
-Filho esquerdo. PID: 16995, Pai PID: 16993
+Filho esquerdo. PID: 21196, Pai PID: 21195
+Filho direito. PID: 21200, Pai PID: 21196
 Finalizando trabalho...
-Filho direito. PID: 16993, Pai PID: 16991
-Filho direito. PID: 16997, Pai PID: 16993
+Filho direito. PID: 21197, Pai PID: 21195
+Filho direito. PID: 21201, Pai PID: 21197
 Finalizando trabalho...
-Filho esquerdo. PID: 16992, Pai PID: 16991
+Filho direito. PID: 21197, Pai PID: 21195
 Finalizando trabalho...
-Filho direito. PID: 16993, Pai PID: 16991
+Filho esquerdo. PID: 21196, Pai PID: 21195
 Finalizando trabalho...
-Tempo transcorrido: 0.014758
+Tempo transcorrido: 0.000141
 
 -----------------------------
 
 Execução 5:
-Filho esquerdo. PID: 16999, Pai PID: 16998
-Filho direito. PID: 17003, Pai PID: 16999
+Filho esquerdo. PID: 21203, Pai PID: 21202
+Filho esquerdo. PID: 21205, Pai PID: 21203
 Finalizando trabalho...
-Filho direito. PID: 17000, Pai PID: 16998
-Filho esquerdo. PID: 17002, Pai PID: 17000
+Filho esquerdo. PID: 21203, Pai PID: 21202
+Filho direito. PID: 21207, Pai PID: 21203
 Finalizando trabalho...
-Filho esquerdo. PID: 16999, Pai PID: 16998
-Filho esquerdo. PID: 17001, Pai PID: 16999
+Filho direito. PID: 21204, Pai PID: 21202
+Filho esquerdo. PID: 21206, Pai PID: 21204
 Finalizando trabalho...
-Filho direito. PID: 17000, Pai PID: 16998
-Filho direito. PID: 17004, Pai PID: 17000
+Filho direito. PID: 21204, Pai PID: 21202
+Filho direito. PID: 21208, Pai PID: 21204
 Finalizando trabalho...
-Filho direito. PID: 17000, Pai PID: 16998
+Filho esquerdo. PID: 21203, Pai PID: 21202
 Finalizando trabalho...
-Filho esquerdo. PID: 16999, Pai PID: 16998
+Filho direito. PID: 21204, Pai PID: 21202
 Finalizando trabalho...
-Tempo transcorrido: 0.015371
+Tempo transcorrido: 0.000132
 
 -----------------------------
 
 Execução 6:
-Filho direito. PID: 17007, Pai PID: 17005
-Filho esquerdo. PID: 17009, Pai PID: 17007
+Filho esquerdo. PID: 21210, Pai PID: 21209
+Filho esquerdo. PID: 21212, Pai PID: 21210
 Finalizando trabalho...
-Filho esquerdo. PID: 17006, Pai PID: 17005
-Filho esquerdo. PID: 17008, Pai PID: 17006
+Filho esquerdo. PID: 21210, Pai PID: 21209
+Filho direito. PID: 21213, Pai PID: 21210
 Finalizando trabalho...
-Filho esquerdo. PID: 17006, Pai PID: 17005
-Filho direito. PID: 17010, Pai PID: 17006
+Filho direito. PID: 21211, Pai PID: 21209
+Filho esquerdo. PID: 21214, Pai PID: 21211
 Finalizando trabalho...
-Filho direito. PID: 17007, Pai PID: 17005
-Filho direito. PID: 17011, Pai PID: 17007
+Filho direito. PID: 21211, Pai PID: 21209
+Filho direito. PID: 21215, Pai PID: 21211
 Finalizando trabalho...
-Filho esquerdo. PID: 17006, Pai PID: 17005
+Filho esquerdo. PID: 21210, Pai PID: 21209
 Finalizando trabalho...
-Filho direito. PID: 17007, Pai PID: 17005
+Filho direito. PID: 21211, Pai PID: 21209
 Finalizando trabalho...
-Tempo transcorrido: 0.014831
+Tempo transcorrido: 0.000118
 
 -----------------------------
 
 Execução 7:
-Filho direito. PID: 17014, Pai PID: 17012
-Filho esquerdo. PID: 17017, Pai PID: 17014
+Filho esquerdo. PID: 21217, Pai PID: 21216
+Filho esquerdo. PID: 21219, Pai PID: 21217
 Finalizando trabalho...
-Filho esquerdo. PID: 17013, Pai PID: 17012
-Filho direito. PID: 17016, Pai PID: 17013
+Filho esquerdo. PID: 21217, Pai PID: 21216
+Filho direito. PID: 21220, Pai PID: 21217
 Finalizando trabalho...
-Filho direito. PID: 17014, Pai PID: 17012
-Filho direito. PID: 17018, Pai PID: 17014
+Filho direito. PID: 21218, Pai PID: 21216
+Filho esquerdo. PID: 21221, Pai PID: 21218
 Finalizando trabalho...
-Filho esquerdo. PID: 17013, Pai PID: 17012
-Filho esquerdo. PID: 17015, Pai PID: 17013
+Filho esquerdo. PID: 21217, Pai PID: 21216
 Finalizando trabalho...
-Filho direito. PID: 17014, Pai PID: 17012
+Filho direito. PID: 21218, Pai PID: 21216
+Filho direito. PID: 21222, Pai PID: 21218
 Finalizando trabalho...
-Filho esquerdo. PID: 17013, Pai PID: 17012
+Filho direito. PID: 21218, Pai PID: 21216
 Finalizando trabalho...
-Tempo transcorrido: 0.015309
+Tempo transcorrido: 0.000125
 
 -----------------------------
 
 Execução 8:
-Filho direito. PID: 17021, Pai PID: 17019
-Filho esquerdo. PID: 17024, Pai PID: 17021
+Filho esquerdo. PID: 21224, Pai PID: 21223
+Filho esquerdo. PID: 21226, Pai PID: 21224
 Finalizando trabalho...
-Filho esquerdo. PID: 17020, Pai PID: 17019
-Filho esquerdo. PID: 17022, Pai PID: 17020
+Filho esquerdo. PID: 21224, Pai PID: 21223
+Filho direito. PID: 21228, Pai PID: 21224
 Finalizando trabalho...
-Filho direito. PID: 17021, Pai PID: 17019
-Filho direito. PID: 17025, Pai PID: 17021
+Filho direito. PID: 21225, Pai PID: 21223
+Filho esquerdo. PID: 21227, Pai PID: 21225
 Finalizando trabalho...
-Filho esquerdo. PID: 17020, Pai PID: 17019
-Filho direito. PID: 17023, Pai PID: 17020
+Filho direito. PID: 21225, Pai PID: 21223
+Filho direito. PID: 21229, Pai PID: 21225
 Finalizando trabalho...
-Filho esquerdo. PID: 17020, Pai PID: 17019
+Filho esquerdo. PID: 21224, Pai PID: 21223
 Finalizando trabalho...
-Filho direito. PID: 17021, Pai PID: 17019
+Filho direito. PID: 21225, Pai PID: 21223
 Finalizando trabalho...
-Tempo transcorrido: 0.014844
+Tempo transcorrido: 0.000124
 
 -----------------------------
 
 Execução 9:
-Filho esquerdo. PID: 17027, Pai PID: 17026
-Filho direito. PID: 17030, Pai PID: 17027
+Filho esquerdo. PID: 21231, Pai PID: 21230
+Filho esquerdo. PID: 21233, Pai PID: 21231
 Finalizando trabalho...
-Filho direito. PID: 17028, Pai PID: 17026
-Filho direito. PID: 17032, Pai PID: 17028
+Filho esquerdo. PID: 21231, Pai PID: 21230
+Filho direito. PID: 21234, Pai PID: 21231
 Finalizando trabalho...
-Filho direito. PID: 17028, Pai PID: 17026
-Filho esquerdo. PID: 17031, Pai PID: 17028
+Filho direito. PID: 21232, Pai PID: 21230
+Filho esquerdo. PID: 21235, Pai PID: 21232
 Finalizando trabalho...
-Filho esquerdo. PID: 17027, Pai PID: 17026
-Filho esquerdo. PID: 17029, Pai PID: 17027
+Filho direito. PID: 21232, Pai PID: 21230
+Filho direito. PID: 21236, Pai PID: 21232
 Finalizando trabalho...
-Filho direito. PID: 17028, Pai PID: 17026
+Filho esquerdo. PID: 21231, Pai PID: 21230
 Finalizando trabalho...
-Filho esquerdo. PID: 17027, Pai PID: 17026
+Filho direito. PID: 21232, Pai PID: 21230
 Finalizando trabalho...
-Tempo transcorrido: 0.018634
+Tempo transcorrido: 0.000137
 
 -----------------------------
 
 Execução 10:
-Filho direito. PID: 17035, Pai PID: 17033
-Filho esquerdo. PID: 17037, Pai PID: 17035
+Filho esquerdo. PID: 21238, Pai PID: 21237
+Filho esquerdo. PID: 21240, Pai PID: 21238
 Finalizando trabalho...
-Filho esquerdo. PID: 17034, Pai PID: 17033
-Filho esquerdo. PID: 17036, Pai PID: 17034
+Filho esquerdo. PID: 21238, Pai PID: 21237
+Filho direito. PID: 21241, Pai PID: 21238
 Finalizando trabalho...
-Filho esquerdo. PID: 17034, Pai PID: 17033
-Filho direito. PID: 17038, Pai PID: 17034
+Filho direito. PID: 21239, Pai PID: 21237
+Filho esquerdo. PID: 21242, Pai PID: 21239
 Finalizando trabalho...
-Filho direito. PID: 17035, Pai PID: 17033
-Filho direito. PID: 17039, Pai PID: 17035
+Filho direito. PID: 21239, Pai PID: 21237
+Filho direito. PID: 21243, Pai PID: 21239
 Finalizando trabalho...
-Filho esquerdo. PID: 17034, Pai PID: 17033
+Filho esquerdo. PID: 21238, Pai PID: 21237
 Finalizando trabalho...
-Filho direito. PID: 17035, Pai PID: 17033
+Filho direito. PID: 21239, Pai PID: 21237
 Finalizando trabalho...
-Tempo transcorrido: 0.014680
+Tempo transcorrido: 0.000127
 
 -----------------------------
 
 Execução 11:
-Filho esquerdo. PID: 17041, Pai PID: 17040
-Filho esquerdo. PID: 17043, Pai PID: 17041
+Filho esquerdo. PID: 21245, Pai PID: 21244
+Filho esquerdo. PID: 21247, Pai PID: 21245
 Finalizando trabalho...
-Filho direito. PID: 17042, Pai PID: 17040
-Filho esquerdo. PID: 17045, Pai PID: 17042
+Filho direito. PID: 21246, Pai PID: 21244
+Filho esquerdo. PID: 21248, Pai PID: 21246
 Finalizando trabalho...
-Filho direito. PID: 17042, Pai PID: 17040
-Filho direito. PID: 17046, Pai PID: 17042
+Filho esquerdo. PID: 21245, Pai PID: 21244
+Filho direito. PID: 21249, Pai PID: 21245
 Finalizando trabalho...
-Filho esquerdo. PID: 17041, Pai PID: 17040
-Filho direito. PID: 17044, Pai PID: 17041
+Filho direito. PID: 21246, Pai PID: 21244
+Filho direito. PID: 21250, Pai PID: 21246
 Finalizando trabalho...
-Filho direito. PID: 17042, Pai PID: 17040
+Filho esquerdo. PID: 21245, Pai PID: 21244
 Finalizando trabalho...
-Filho esquerdo. PID: 17041, Pai PID: 17040
+Filho direito. PID: 21246, Pai PID: 21244
 Finalizando trabalho...
-Tempo transcorrido: 0.014906
+Tempo transcorrido: 0.000128
 
 -----------------------------
 
 Execução 12:
-Filho esquerdo. PID: 17048, Pai PID: 17047
-Filho esquerdo. PID: 17050, Pai PID: 17048
+Filho esquerdo. PID: 21252, Pai PID: 21251
+Filho esquerdo. PID: 21254, Pai PID: 21252
 Finalizando trabalho...
-Filho direito. PID: 17049, Pai PID: 17047
-Filho esquerdo. PID: 17051, Pai PID: 17049
+Filho esquerdo. PID: 21252, Pai PID: 21251
+Filho direito. PID: 21255, Pai PID: 21252
 Finalizando trabalho...
-Filho esquerdo. PID: 17048, Pai PID: 17047
-Filho direito. PID: 17052, Pai PID: 17048
+Filho direito. PID: 21253, Pai PID: 21251
+Filho esquerdo. PID: 21256, Pai PID: 21253
 Finalizando trabalho...
-Filho direito. PID: 17049, Pai PID: 17047
-Filho direito. PID: 17053, Pai PID: 17049
+Filho direito. PID: 21253, Pai PID: 21251
+Filho direito. PID: 21257, Pai PID: 21253
 Finalizando trabalho...
-Filho esquerdo. PID: 17048, Pai PID: 17047
+Filho esquerdo. PID: 21252, Pai PID: 21251
 Finalizando trabalho...
-Filho direito. PID: 17049, Pai PID: 17047
+Filho direito. PID: 21253, Pai PID: 21251
 Finalizando trabalho...
-Tempo transcorrido: 0.014726
+Tempo transcorrido: 0.000139
 
 -----------------------------
 
 Execução 13:
-Filho esquerdo. PID: 17055, Pai PID: 17054
-Filho esquerdo. PID: 17057, Pai PID: 17055
+Filho esquerdo. PID: 21259, Pai PID: 21258
+Filho esquerdo. PID: 21261, Pai PID: 21259
 Finalizando trabalho...
-Filho direito. PID: 17056, Pai PID: 17054
-Filho esquerdo. PID: 17058, Pai PID: 17056
+Filho direito. PID: 21260, Pai PID: 21258
+Filho esquerdo. PID: 21262, Pai PID: 21260
 Finalizando trabalho...
-Filho esquerdo. PID: 17055, Pai PID: 17054
-Filho direito. PID: 17059, Pai PID: 17055
+Filho esquerdo. PID: 21259, Pai PID: 21258
+Filho direito. PID: 21263, Pai PID: 21259
 Finalizando trabalho...
-Filho direito. PID: 17056, Pai PID: 17054
-Filho direito. PID: 17060, Pai PID: 17056
+Filho direito. PID: 21260, Pai PID: 21258
+Filho direito. PID: 21264, Pai PID: 21260
 Finalizando trabalho...
-Filho direito. PID: 17056, Pai PID: 17054
+Filho esquerdo. PID: 21259, Pai PID: 21258
 Finalizando trabalho...
-Filho esquerdo. PID: 17055, Pai PID: 17054
+Filho direito. PID: 21260, Pai PID: 21258
 Finalizando trabalho...
-Tempo transcorrido: 0.014990
+Tempo transcorrido: 0.000116
 
 -----------------------------
 
 Execução 14:
-Filho esquerdo. PID: 17062, Pai PID: 17061
-Filho esquerdo. PID: 17064, Pai PID: 17062
+Filho esquerdo. PID: 21266, Pai PID: 21265
+Filho esquerdo. PID: 21268, Pai PID: 21266
 Finalizando trabalho...
-Filho direito. PID: 17063, Pai PID: 17061
-Filho esquerdo. PID: 17066, Pai PID: 17063
+Filho esquerdo. PID: 21266, Pai PID: 21265
+Filho direito. PID: 21269, Pai PID: 21266
 Finalizando trabalho...
-Filho direito. PID: 17063, Pai PID: 17061
-Filho direito. PID: 17067, Pai PID: 17063
+Filho direito. PID: 21267, Pai PID: 21265
+Filho esquerdo. PID: 21270, Pai PID: 21267
 Finalizando trabalho...
-Filho esquerdo. PID: 17062, Pai PID: 17061
-Filho direito. PID: 17065, Pai PID: 17062
+Filho direito. PID: 21267, Pai PID: 21265
+Filho direito. PID: 21271, Pai PID: 21267
 Finalizando trabalho...
-Filho esquerdo. PID: 17062, Pai PID: 17061
+Filho direito. PID: 21267, Pai PID: 21265
 Finalizando trabalho...
-Filho direito. PID: 17063, Pai PID: 17061
+Filho esquerdo. PID: 21266, Pai PID: 21265
 Finalizando trabalho...
-Tempo transcorrido: 0.019919
+Tempo transcorrido: 0.000120
 
 -----------------------------
 
 Execução 15:
-Filho esquerdo. PID: 17069, Pai PID: 17068
-Filho esquerdo. PID: 17071, Pai PID: 17069
+Filho esquerdo. PID: 21273, Pai PID: 21272
+Filho esquerdo. PID: 21275, Pai PID: 21273
 Finalizando trabalho...
-Filho esquerdo. PID: 17069, Pai PID: 17068
-Filho direito. PID: 17072, Pai PID: 17069
+Filho direito. PID: 21274, Pai PID: 21272
+Filho esquerdo. PID: 21276, Pai PID: 21274
 Finalizando trabalho...
-Filho direito. PID: 17070, Pai PID: 17068
-Filho esquerdo. PID: 17073, Pai PID: 17070
+Filho esquerdo. PID: 21273, Pai PID: 21272
+Filho direito. PID: 21277, Pai PID: 21273
 Finalizando trabalho...
-Filho direito. PID: 17070, Pai PID: 17068
-Filho direito. PID: 17074, Pai PID: 17070
+Filho direito. PID: 21274, Pai PID: 21272
+Filho direito. PID: 21278, Pai PID: 21274
 Finalizando trabalho...
-Filho esquerdo. PID: 17069, Pai PID: 17068
+Filho esquerdo. PID: 21273, Pai PID: 21272
 Finalizando trabalho...
-Filho direito. PID: 17070, Pai PID: 17068
+Filho direito. PID: 21274, Pai PID: 21272
 Finalizando trabalho...
-Tempo transcorrido: 0.016073
+Tempo transcorrido: 0.000119
 
 -----------------------------
 
 Execução 16:
-Filho esquerdo. PID: 17076, Pai PID: 17075
-Filho direito. PID: 17080, Pai PID: 17076
+Filho esquerdo. PID: 21280, Pai PID: 21279
+Filho esquerdo. PID: 21282, Pai PID: 21280
 Finalizando trabalho...
-Filho direito. PID: 17077, Pai PID: 17075
-Filho esquerdo. PID: 17079, Pai PID: 17077
+Filho direito. PID: 21281, Pai PID: 21279
+Filho esquerdo. PID: 21283, Pai PID: 21281
 Finalizando trabalho...
-Filho esquerdo. PID: 17076, Pai PID: 17075
-Filho esquerdo. PID: 17078, Pai PID: 17076
+Filho esquerdo. PID: 21280, Pai PID: 21279
+Filho direito. PID: 21284, Pai PID: 21280
 Finalizando trabalho...
-Filho direito. PID: 17077, Pai PID: 17075
-Filho direito. PID: 17081, Pai PID: 17077
+Filho direito. PID: 21281, Pai PID: 21279
+Filho direito. PID: 21285, Pai PID: 21281
 Finalizando trabalho...
-Filho esquerdo. PID: 17076, Pai PID: 17075
+Filho esquerdo. PID: 21280, Pai PID: 21279
 Finalizando trabalho...
-Filho direito. PID: 17077, Pai PID: 17075
+Filho direito. PID: 21281, Pai PID: 21279
 Finalizando trabalho...
-Tempo transcorrido: 0.016931
+Tempo transcorrido: 0.000122
 
 -----------------------------
 
 Execução 17:
-Filho direito. PID: 17084, Pai PID: 17082
-Filho esquerdo. PID: 17086, Pai PID: 17084
+Filho esquerdo. PID: 21287, Pai PID: 21286
+Filho esquerdo. PID: 21289, Pai PID: 21287
 Finalizando trabalho...
-Filho esquerdo. PID: 17083, Pai PID: 17082
-Filho esquerdo. PID: 17085, Pai PID: 17083
+Filho esquerdo. PID: 21287, Pai PID: 21286
+Filho direito. PID: 21290, Pai PID: 21287
 Finalizando trabalho...
-Filho esquerdo. PID: 17083, Pai PID: 17082
-Filho direito. PID: 17087, Pai PID: 17083
+Filho direito. PID: 21288, Pai PID: 21286
+Filho esquerdo. PID: 21291, Pai PID: 21288
 Finalizando trabalho...
-Filho direito. PID: 17084, Pai PID: 17082
-Filho direito. PID: 17088, Pai PID: 17084
+Filho direito. PID: 21288, Pai PID: 21286
+Filho direito. PID: 21292, Pai PID: 21288
 Finalizando trabalho...
-Filho direito. PID: 17084, Pai PID: 17082
+Filho esquerdo. PID: 21287, Pai PID: 21286
 Finalizando trabalho...
-Filho esquerdo. PID: 17083, Pai PID: 17082
+Filho direito. PID: 21288, Pai PID: 21286
 Finalizando trabalho...
-Tempo transcorrido: 0.014996
+Tempo transcorrido: 0.000109
 
 -----------------------------
 
 Execução 18:
-Filho esquerdo. PID: 17090, Pai PID: 17089
-Filho direito. PID: 17093, Pai PID: 17090
+Filho esquerdo. PID: 21294, Pai PID: 21293
+Filho esquerdo. PID: 21296, Pai PID: 21294
 Finalizando trabalho...
-Filho esquerdo. PID: 17090, Pai PID: 17089
-Filho esquerdo. PID: 17092, Pai PID: 17090
+Filho esquerdo. PID: 21294, Pai PID: 21293
+Filho direito. PID: 21297, Pai PID: 21294
 Finalizando trabalho...
-Filho direito. PID: 17091, Pai PID: 17089
-Filho esquerdo. PID: 17094, Pai PID: 17091
+Filho direito. PID: 21295, Pai PID: 21293
+Filho esquerdo. PID: 21298, Pai PID: 21295
 Finalizando trabalho...
-Filho direito. PID: 17091, Pai PID: 17089
-Filho direito. PID: 17095, Pai PID: 17091
+Filho esquerdo. PID: 21294, Pai PID: 21293
 Finalizando trabalho...
-Filho esquerdo. PID: 17090, Pai PID: 17089
+Filho direito. PID: 21295, Pai PID: 21293
+Filho direito. PID: 21299, Pai PID: 21295
 Finalizando trabalho...
-Filho direito. PID: 17091, Pai PID: 17089
+Filho direito. PID: 21295, Pai PID: 21293
 Finalizando trabalho...
-Tempo transcorrido: 0.015011
+Tempo transcorrido: 0.000124
 
 -----------------------------
 
 Execução 19:
-Filho direito. PID: 17098, Pai PID: 17096
-Filho esquerdo. PID: 17100, Pai PID: 17098
+Filho esquerdo. PID: 21301, Pai PID: 21300
+Filho esquerdo. PID: 21303, Pai PID: 21301
 Finalizando trabalho...
-Filho esquerdo. PID: 17097, Pai PID: 17096
-Filho esquerdo. PID: 17099, Pai PID: 17097
+Filho esquerdo. PID: 21301, Pai PID: 21300
+Filho direito. PID: 21304, Pai PID: 21301
 Finalizando trabalho...
-Filho esquerdo. PID: 17097, Pai PID: 17096
-Filho direito. PID: 17101, Pai PID: 17097
+Filho direito. PID: 21302, Pai PID: 21300
+Filho esquerdo. PID: 21305, Pai PID: 21302
 Finalizando trabalho...
-Filho direito. PID: 17098, Pai PID: 17096
-Filho direito. PID: 17102, Pai PID: 17098
+Filho direito. PID: 21302, Pai PID: 21300
+Filho direito. PID: 21306, Pai PID: 21302
 Finalizando trabalho...
-Filho esquerdo. PID: 17097, Pai PID: 17096
+Filho esquerdo. PID: 21301, Pai PID: 21300
 Finalizando trabalho...
-Filho direito. PID: 17098, Pai PID: 17096
+Filho direito. PID: 21302, Pai PID: 21300
 Finalizando trabalho...
-Tempo transcorrido: 0.014792
+Tempo transcorrido: 0.000126
 
 -----------------------------
 
 Execução 20:
-Filho direito. PID: 17105, Pai PID: 17103
-Filho esquerdo. PID: 17107, Pai PID: 17105
+Filho esquerdo. PID: 21308, Pai PID: 21307
+Filho esquerdo. PID: 21310, Pai PID: 21308
 Finalizando trabalho...
-Filho esquerdo. PID: 17104, Pai PID: 17103
-Filho esquerdo. PID: 17106, Pai PID: 17104
+Filho direito. PID: 21309, Pai PID: 21307
+Filho esquerdo. PID: 21311, Pai PID: 21309
 Finalizando trabalho...
-Filho esquerdo. PID: 17104, Pai PID: 17103
-Filho direito. PID: 17108, Pai PID: 17104
+Filho esquerdo. PID: 21308, Pai PID: 21307
+Filho direito. PID: 21312, Pai PID: 21308
 Finalizando trabalho...
-Filho direito. PID: 17105, Pai PID: 17103
-Filho direito. PID: 17109, Pai PID: 17105
+Filho direito. PID: 21309, Pai PID: 21307
+Filho direito. PID: 21313, Pai PID: 21309
 Finalizando trabalho...
-Filho esquerdo. PID: 17104, Pai PID: 17103
+Filho esquerdo. PID: 21308, Pai PID: 21307
 Finalizando trabalho...
-Filho direito. PID: 17105, Pai PID: 17103
+Filho direito. PID: 21309, Pai PID: 21307
 Finalizando trabalho...
-Tempo transcorrido: 0.014863
+Tempo transcorrido: 0.000120
 
 -----------------------------
 
