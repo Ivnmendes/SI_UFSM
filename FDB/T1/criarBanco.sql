@@ -3,17 +3,17 @@ CREATE DATABASE CopaDoMundo;
 
 USE CopaDoMundo;
 
-CREATE TABLE Paises (
+CREATE TABLE Pais (
     idPais INT PRIMARY KEY AUTO_INCREMENT,
     nome VARCHAR(255) NOT NULL UNIQUE
 );
 
-CREATE TABLE Edicoes (
+CREATE TABLE Edicao (
     idEdicao INT PRIMARY KEY AUTO_INCREMENT,
     ano INT NOT NULL UNIQUE
 );
 
-CREATE TABLE Partidas (
+CREATE TABLE Partida (
     idPartida INT PRIMARY KEY AUTO_INCREMENT,
     idEdicao INT NOT NULL,
     fase VARCHAR(50) NOT NULL,
@@ -22,17 +22,17 @@ CREATE TABLE Partidas (
     golsTimeCasa INT,
     golsTimeFora INT,
     observacoesPlacar VARCHAR(50),
-    FOREIGN KEY (idEdicao) REFERENCES Edicoes(idEdicao),
-    FOREIGN KEY (idTimeCasa) REFERENCES Paises(idPais),
-    FOREIGN KEY (idTimeFora) REFERENCES Paises(idPais)
+    FOREIGN KEY (idEdicao) REFERENCES Edicao(idEdicao),
+    FOREIGN KEY (idTimeCasa) REFERENCES Pais(idPais),
+    FOREIGN KEY (idTimeFora) REFERENCES Pais(idPais)
 );
 
-CREATE TABLE EdicaoSedes (
+CREATE TABLE EdicaoSede (
     idEdicao INT,
-    idPais INT,
+    idPais INT NOT NULL,
     PRIMARY KEY (idEdicao, idPais),
-    FOREIGN KEY (idEdicao) REFERENCES Edicoes(idEdicao),
-    FOREIGN KEY (idPais) REFERENCES Paises(idPais)
+    FOREIGN KEY (idEdicao) REFERENCES Edicao(idEdicao),
+    FOREIGN KEY (idPais) REFERENCES Pais(idPais)
 );
 
 CREATE TABLE Jogador (
@@ -41,13 +41,13 @@ CREATE TABLE Jogador (
     idPais INT,
     totalGols INT NOT NULL DEFAULT 0,
     totalPartidas INT NOT NULL DEFAULT 0,
-    FOREIGN KEY (idPais) REFERENCES Paises(idPais)
+    FOREIGN KEY (idPais) REFERENCES Pais(idPais)
 );
 
 CREATE TABLE ParticipacaoJogador (
-    idEdicao INT,
-    idJogador INT,
+    idEdicao INT NOT NULL,
+    idJogador INT NOT NULL,
     PRIMARY KEY (idEdicao, idJogador),
-    FOREIGN KEY (idEdicao) REFERENCES Edicoes(idEdicao),
+    FOREIGN KEY (idEdicao) REFERENCES Edicao(idEdicao),
     FOREIGN KEY (idJogador) REFERENCES Jogador(idJogador)
 );
