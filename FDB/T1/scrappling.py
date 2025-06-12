@@ -1,7 +1,6 @@
 import pandas as pd
 import re
 import requests
-# import os
 from io import StringIO
 from pathlib import Path
 import mysql.connector
@@ -123,139 +122,155 @@ def scrap_edicoes(html_content: str) -> pd.DataFrame | None:
         print(f"Não foi possível encontrar ou processar a tabela de edições: {e}")
         return None
 
+def formatar_valor_sql(valor):
+    """
+    Formata um valor Python para sua representação em texto SQL correta.
+    - None se torna a string 'NULL'.
+    - Números se tornam strings de si mesmos.
+    - Strings são envolvidas em aspas simples (e aspas internas são escapadas).
+    """
+    if valor is None:
+        return 'NULL'
+    if isinstance(valor, (int, float)):
+        return str(valor)
+    return "'" + str(valor).replace("'", "''") + "'"
+
 def popular_banco(conn, df_artilheiros, df_edicoes):
     """
-    Usa os DataFrames para popular as tabelas do banco de dados MySQL.
+    Usa os DataFrames para popular as tabelas do MySQL E gera um script SQL.
     """
     if conn is None or not conn.is_connected():
         print("Conexão com o banco de dados falhou. Abortando.")
         return
+    
+    with open('dados_para_inserir.sql', 'w', encoding='utf-8') as sql_file:
+        sql_file.write("USE CopaDoMundo;\n\n")
+
+        cursor = conn.cursor()
+
+        queries_delete = [
+            "DELETE FROM ParticipacaoJogador;", "DELETE FROM Jogador;",
+            "DELETE FROM EdicaoSedes;", "DELETE FROM Partidas;",
+            "DELETE FROM Edicoes;", "DELETE FROM Paises;"
+        ]
+        sql_file.write("-- Comandos para limpar as tabelas antes de inserir (descomente se necessário)\n/*\n")
+        for query in queries_delete:
+            cursor.execute(query.replace(';', ''))
+            sql_file.write(f"{query}\n")
+        sql_file.write("*/\n\n")
+        conn.commit()
+
+        paises_set = set()
+        paises_set.update(df_artilheiros['Seleção'].dropna().unique())
+        colunas_paises = ['Sede', 'Campeao', 'Vice_Campeao', 'Terceiro_Lugar', 'Quarto_Lugar']
+        for coluna in colunas_paises:
+            paises_split = df_edicoes[coluna].str.split(' / ', expand=True).stack()
+            paises_set.update(paises_split.dropna().unique())
+        paises_set.discard('')
+
+        print("Inserindo Países")
+        sql_insert_pais = "INSERT IGNORE INTO Paises (nome) VALUES (%s)"
+        lista_paises_tuplas = [(pais,) for pais in sorted(list(paises_set))]
         
-    cursor = conn.cursor()
-
-    # etapa usada só no debug
-    cursor.execute("DELETE FROM ParticipacaoJogador")
-    cursor.execute("DELETE FROM Jogador")
-    cursor.execute("DELETE FROM EdicaoSedes")
-    cursor.execute("DELETE FROM Partidas")
-    cursor.execute("DELETE FROM Edicoes")
-    cursor.execute("DELETE FROM Paises")
-
-    print("\n--- COLETANDO PAÍSES ---")
-    paises_set = set()
-    
-    paises_set.update(df_artilheiros['Seleção'].dropna().unique())
-    
-    for coluna in ['Sede', 'Campeao', 'Vice_Campeao', 'Terceiro_Lugar', 'Quarto_Lugar']:
-        paises_split = df_edicoes[coluna].str.split(' / ', expand=True).stack()
-        paises_set.update(paises_split.dropna().unique())
-    
-    paises_set.discard('')
-
-    print("\n--- INSERINDO PAÍSES NO BANCO ---")
-    sql_insert_pais = "INSERT IGNORE INTO Paises (nome) VALUES (%s)"
-    lista_paises_tuplas = [(pais,) for pais in sorted(list(paises_set))]
-    cursor.executemany(sql_insert_pais, lista_paises_tuplas)
-    conn.commit()
-    print(f"{cursor.rowcount} novos países inseridos na tabela 'Paises'.")
-
-    cursor.execute("SELECT idPais, nome FROM Paises")
-    mapa_paises = {nome: id for id, nome in cursor.fetchall()}
-
-    print("\n--- INSERINDO EDIÇÕES NO BANCO ---")
-    sql_insert_edicao = "INSERT IGNORE INTO Edicoes (ano) VALUES (%s)"
-    anos_para_inserir = [(int(edicao.Ano),) for edicao in df_edicoes.itertuples()]
-    
-    cursor.executemany(sql_insert_edicao, anos_para_inserir)
-    conn.commit()
-    print(f"{cursor.rowcount} novas edições inseridas na tabela 'Edicoes'.")
-    
-    cursor.execute("SELECT idEdicao, ano FROM Edicoes")
-    mapa_edicoes = {ano: id for id, ano in cursor.fetchall()}
-
-    print("\n--- VINCULANDO SEDES ÀS EDIÇÕES ---")
-    sql_insert_sede = "INSERT IGNORE INTO EdicaoSedes (idEdicao, idPais) VALUES (%s, %s)"
-    sedes_para_inserir = []
-    for edicao in df_edicoes.itertuples():
-        id_edicao_atual = mapa_edicoes.get(edicao.Ano)
-        if id_edicao_atual:
-            paises_sede = edicao.Sede.split(' / ')
-            for pais_nome in paises_sede:
-                id_pais_sede = mapa_paises.get(pais_nome.strip())
-                if id_pais_sede:
-                    sedes_para_inserir.append((id_edicao_atual, id_pais_sede))
-
-    cursor.executemany(sql_insert_sede, sedes_para_inserir)
-    conn.commit()
-    print(f"{cursor.rowcount} novos registros de sede inseridos na tabela 'EdicaoSedes'.")
-
-    print("\n--- INSERINDO PARTIDAS NO BANCO ---")
-    sql_insert_partida = """
-    INSERT IGNORE INTO Partidas 
-        (idEdicao, fase, idTimeCasa, idTimeFora, golsTimeCasa, golsTimeFora, observacoesPlacar)
-    VALUES (%s, %s, %s, %s, %s, %s, %s)
-    """
-    partidas_para_inserir = []
-
-    for edicao in df_edicoes.itertuples():
-        id_edicao_atual = mapa_edicoes.get(edicao.Ano)
-        if not id_edicao_atual:
-            continue
-
-        id_campeao = mapa_paises.get(edicao.Campeao)
-        id_vice = mapa_paises.get(edicao.Vice_Campeao)
-        if id_campeao and id_vice:
-            gols_c, gols_v, obs = parse_placar(edicao.Placar_Final)
-            partidas_para_inserir.append((id_edicao_atual, 'Final', id_campeao, id_vice, gols_c, gols_v, obs))
+        sql_file.write("-- Inserção de Países\n")
+        for tupla in lista_paises_tuplas:
+            sql_file.write(f"INSERT IGNORE INTO Paises (nome) VALUES ({formatar_valor_sql(tupla[0])});\n")
         
-        id_terceiro = mapa_paises.get(edicao.Terceiro_Lugar)
-        id_quarto = mapa_paises.get(edicao.Quarto_Lugar)
-        if id_terceiro and id_quarto:
-            gols_c, gols_v, obs = parse_placar(edicao.Placar_Disputa_Terceiro)
-            partidas_para_inserir.append((id_edicao_atual, 'Disputa 3º Lugar', id_terceiro, id_quarto, gols_c, gols_v, obs))
+        cursor.executemany(sql_insert_pais, lista_paises_tuplas)
+        conn.commit()
 
-    cursor.executemany(sql_insert_partida, partidas_para_inserir)
-    conn.commit()
-    print(f"{cursor.rowcount} novas partidas inseridas na tabela 'Partidas'.")
+        cursor.execute("SELECT idPais, nome FROM Paises")
+        mapa_paises = {nome: id for id, nome in cursor.fetchall()}
 
-    print("\n--- INSERINDO JOGADORES NO BANCO ---")
-    sql_insert_jogador = """
-    INSERT IGNORE INTO Jogador (nome, idPais, totalGols, totalPartidas)
-    VALUES (%s, %s, %s, %s)
-    """
-    jogadores_para_inserir = []
-    for jogador in df_artilheiros.itertuples():
-        id_pais = mapa_paises.get(jogador.Seleção)
-        jogadores_para_inserir.append((jogador.Jogador, id_pais, jogador.Gols, jogador.Jogos))
-    
-    cursor.executemany(sql_insert_jogador, jogadores_para_inserir)
-    conn.commit()
-    print(f"{cursor.rowcount} novos jogadores inseridos na tabela 'Jogador'.")
+        print("Inserindo Edições")
+        sql_insert_edicao = "INSERT IGNORE INTO Edicoes (ano) VALUES (%s)"
+        anos_para_inserir = [(int(edicao.Ano),) for edicao in df_edicoes.itertuples()]
+        sql_file.write("\n-- Inserção de Edições\n")
+        for tupla in anos_para_inserir:
+             sql_file.write(f"INSERT IGNORE INTO Edicoes (ano) VALUES ({formatar_valor_sql(tupla[0])});\n")
+        cursor.executemany(sql_insert_edicao, anos_para_inserir)
+        conn.commit()
 
-    cursor.execute("SELECT idJogador, nome FROM Jogador")
-    mapa_jogadores = {nome: id for id, nome in cursor.fetchall()}
+        cursor.execute("SELECT idEdicao, ano FROM Edicoes")
+        mapa_edicoes = {ano: id for id, ano in cursor.fetchall()}
+        print("Vinculando Sedes")
+        sql_insert_sede = "INSERT IGNORE INTO EdicaoSedes (idEdicao, idPais) VALUES (%s, %s)"
+        sedes_para_inserir = []
+        for edicao in df_edicoes.itertuples():
+            id_edicao_atual = mapa_edicoes.get(edicao.Ano)
+            if id_edicao_atual:
+                paises_sede = edicao.Sede.split(' / ')
+                for pais_nome in paises_sede:
+                    id_pais_sede = mapa_paises.get(pais_nome.strip())
+                    if id_pais_sede:
+                        sedes_para_inserir.append((id_edicao_atual, id_pais_sede))
+        sql_file.write("\n-- Vinculação de Sedes\n")
+        for id_e, id_p in sedes_para_inserir:
+             sql_file.write(f"INSERT IGNORE INTO EdicaoSedes (idEdicao, idPais) VALUES ({formatar_valor_sql(id_e)}, {formatar_valor_sql(id_p)});\n")
+        cursor.executemany(sql_insert_sede, sedes_para_inserir)
+        conn.commit()
 
-    print("\n--- INSERINDO PARTICIPAÇÕES DOS JOGADORES ---")
-    sql_insert_participacao = "INSERT IGNORE INTO ParticipacaoJogador (idEdicao, idJogador) VALUES (%s, %s)"
-    participacoes_para_inserir = []
-    for jogador in df_artilheiros.itertuples():
-        id_jogador = mapa_jogadores.get(jogador.Jogador)
-        anos_torneios = str(jogador.Torneios).split(',')
-        
-        for ano_str in anos_torneios:
-            try:
-                ano = int(ano_str.strip())
-                id_edicao = mapa_edicoes.get(ano)
-                if id_jogador and id_edicao:
-                    participacoes_para_inserir.append((id_edicao, id_jogador))
-            except ValueError:
-                continue
+        print("Inserindo Partidas")
+        partidas_para_inserir = []
+        for edicao in df_edicoes.itertuples():
+            id_edicao_atual = mapa_edicoes.get(edicao.Ano)
+            if not id_edicao_atual: continue
+            id_campeao = mapa_paises.get(edicao.Campeao)
+            id_vice = mapa_paises.get(edicao.Vice_Campeao)
+            if id_campeao and id_vice:
+                gols_c, gols_v, obs = parse_placar(edicao.Placar_Final)
+                partidas_para_inserir.append((id_edicao_atual, 'Final', id_campeao, id_vice, gols_c, gols_v, obs))
+            id_terceiro = mapa_paises.get(edicao.Terceiro_Lugar)
+            id_quarto = mapa_paises.get(edicao.Quarto_Lugar)
+            if id_terceiro and id_quarto:
+                gols_c, gols_v, obs = parse_placar(edicao.Placar_Disputa_Terceiro)
+                partidas_para_inserir.append((id_edicao_atual, 'Disputa 3º Lugar', id_terceiro, id_quarto, gols_c, gols_v, obs))
 
-    cursor.executemany(sql_insert_participacao, participacoes_para_inserir)
-    conn.commit()
-    print(f"{cursor.rowcount} novas participações inseridas na tabela 'ParticipacaoJogador'.")
-    
-    cursor.close()
+        sql_insert_partida = "INSERT IGNORE INTO Partidas (idEdicao, fase, idTimeCasa, idTimeFora, golsTimeCasa, golsTimeFora, observacoesPlacar) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        sql_file.write("\n-- Inserção de Partidas\n")
+        for partida in partidas_para_inserir:
+            valores_formatados = ", ".join([formatar_valor_sql(v) for v in partida])
+            sql_file.write(f"INSERT IGNORE INTO Partidas (idEdicao, fase, idTimeCasa, idTimeFora, golsTimeCasa, golsTimeFora, observacoesPlacar) VALUES ({valores_formatados});\n")
+        cursor.executemany(sql_insert_partida, partidas_para_inserir)
+        conn.commit()
+
+        print("Inserindo Jogadores")
+        jogadores_para_inserir = []
+        for jogador in df_artilheiros.itertuples():
+            id_pais = mapa_paises.get(jogador.Seleção)
+            jogadores_para_inserir.append((jogador.Jogador, id_pais, jogador.Gols, jogador.Jogos))
+        sql_insert_jogador = "INSERT IGNORE INTO Jogador (nome, idPais, totalGols, totalPartidas) VALUES (%s, %s, %s, %s)"
+        sql_file.write("\n-- Inserção de Jogadores\n")
+        for jogador in jogadores_para_inserir:
+             valores_formatados = ", ".join([formatar_valor_sql(v) for v in jogador])
+             sql_file.write(f"INSERT IGNORE INTO Jogador (nome, idPais, totalGols, totalPartidas) VALUES ({valores_formatados});\n")
+        cursor.executemany(sql_insert_jogador, jogadores_para_inserir)
+        conn.commit()
+
+        print("Inserindo Participações")
+        cursor.execute("SELECT idJogador, nome FROM Jogador")
+        mapa_jogadores = {nome: id for id, nome in cursor.fetchall()}
+        participacoes_para_inserir = []
+        for jogador in df_artilheiros.itertuples():
+            id_jogador = mapa_jogadores.get(jogador.Jogador)
+            anos_torneios = str(jogador.Torneios).split(',')
+            for ano_str in anos_torneios:
+                try:
+                    ano = int(ano_str.strip())
+                    id_edicao = mapa_edicoes.get(ano)
+                    if id_jogador and id_edicao:
+                        participacoes_para_inserir.append((id_edicao, id_jogador))
+                except ValueError:
+                    continue
+        sql_insert_participacao = "INSERT IGNORE INTO ParticipacaoJogador (idEdicao, idJogador) VALUES (%s, %s)"
+        sql_file.write("\n-- Inserção de Participações de Jogadores\n")
+        for id_e, id_j in participacoes_para_inserir:
+             sql_file.write(f"INSERT IGNORE INTO ParticipacaoJogador (idEdicao, idJogador) VALUES ({formatar_valor_sql(id_e)}, {formatar_valor_sql(id_j)});\n")
+        cursor.executemany(sql_insert_participacao, participacoes_para_inserir)
+        conn.commit()
+
+        cursor.close()
+        print("\nProcesso de inserção e geração de script finalizado.")
 
 if __name__ == "__main__":
     DATA_DIR.mkdir(exist_ok=True)
