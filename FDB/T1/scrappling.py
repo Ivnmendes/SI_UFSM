@@ -1,7 +1,7 @@
 import pandas as pd
-# import re
+import re
 import requests
-import os
+# import os
 from io import StringIO
 from pathlib import Path
 import mysql.connector
@@ -45,6 +45,25 @@ def get_html(url: str, local_path: Path) -> str | None:
         except requests.exceptions.RequestException as e:
             print(f" Erro ao tentar acessar a URL: {e}")
             return None
+
+def parse_placar(placar_str):
+    """
+    Transforma uma string de placar em uma tupla com gols e observações.
+    Ex: '4 – 2' -> (4, 2, None)
+    Ex: '2 – 1 (pro)' -> (2, 1, '(pro)')
+    """
+    if not isinstance(placar_str, str):
+        return (None, None, None)
+    
+    match = re.search(r'(\d+)\s*–\s*(\d+)(.*)', placar_str)
+    
+    if match:
+        gols_casa = int(match.group(1))
+        gols_fora = int(match.group(2))
+        obs = match.group(3).strip() if match.group(3) else None
+        return (gols_casa, gols_fora, obs)
+    else:
+        return (None, None, None)
 
 def scrap_artilheiros(html_content: str) -> pd.DataFrame | None:
     """Extrai e limpa a tabela de artilheiros do conteúdo HTML."""
@@ -118,6 +137,7 @@ def popular_banco(conn, df_artilheiros, df_edicoes):
     cursor.execute("DELETE FROM ParticipacaoJogador")
     cursor.execute("DELETE FROM Jogador")
     cursor.execute("DELETE FROM EdicaoSedes")
+    cursor.execute("DELETE FROM Partidas")
     cursor.execute("DELETE FROM Edicoes")
     cursor.execute("DELETE FROM Paises")
 
@@ -131,7 +151,7 @@ def popular_banco(conn, df_artilheiros, df_edicoes):
         paises_set.update(paises_split.dropna().unique())
     
     paises_set.discard('')
-    
+
     print("\n--- INSERINDO PAÍSES NO BANCO ---")
     sql_insert_pais = "INSERT IGNORE INTO Paises (nome) VALUES (%s)"
     lista_paises_tuplas = [(pais,) for pais in sorted(list(paises_set))]
@@ -143,20 +163,10 @@ def popular_banco(conn, df_artilheiros, df_edicoes):
     mapa_paises = {nome: id for id, nome in cursor.fetchall()}
 
     print("\n--- INSERINDO EDIÇÕES NO BANCO ---")
-    sql_insert_edicao = """
-    INSERT IGNORE INTO Edicoes (ano, idCampeao, idViceCampeao, idTerceiro, idQuarto)
-    VALUES (%s, %s, %s, %s, %s)
-    """
-    edicoes_para_inserir = []
-    for edicao in df_edicoes.itertuples():
-        ano = int(edicao.Ano)
-        id_campeao = mapa_paises.get(edicao.Campeao)
-        id_vice = mapa_paises.get(edicao.Vice_Campeao)
-        id_terceiro = mapa_paises.get(edicao.Terceiro_Lugar)
-        id_quarto = mapa_paises.get(edicao.Quarto_Lugar)
-        edicoes_para_inserir.append((ano, id_campeao, id_vice, id_terceiro, id_quarto))
-
-    cursor.executemany(sql_insert_edicao, edicoes_para_inserir)
+    sql_insert_edicao = "INSERT IGNORE INTO Edicoes (ano) VALUES (%s)"
+    anos_para_inserir = [(int(edicao.Ano),) for edicao in df_edicoes.itertuples()]
+    
+    cursor.executemany(sql_insert_edicao, anos_para_inserir)
     conn.commit()
     print(f"{cursor.rowcount} novas edições inseridas na tabela 'Edicoes'.")
     
@@ -178,6 +188,35 @@ def popular_banco(conn, df_artilheiros, df_edicoes):
     cursor.executemany(sql_insert_sede, sedes_para_inserir)
     conn.commit()
     print(f"{cursor.rowcount} novos registros de sede inseridos na tabela 'EdicaoSedes'.")
+
+    print("\n--- INSERINDO PARTIDAS NO BANCO ---")
+    sql_insert_partida = """
+    INSERT IGNORE INTO Partidas 
+        (idEdicao, fase, idTimeCasa, idTimeFora, golsTimeCasa, golsTimeFora, observacoesPlacar)
+    VALUES (%s, %s, %s, %s, %s, %s, %s)
+    """
+    partidas_para_inserir = []
+
+    for edicao in df_edicoes.itertuples():
+        id_edicao_atual = mapa_edicoes.get(edicao.Ano)
+        if not id_edicao_atual:
+            continue
+
+        id_campeao = mapa_paises.get(edicao.Campeao)
+        id_vice = mapa_paises.get(edicao.Vice_Campeao)
+        if id_campeao and id_vice:
+            gols_c, gols_v, obs = parse_placar(edicao.Placar_Final)
+            partidas_para_inserir.append((id_edicao_atual, 'Final', id_campeao, id_vice, gols_c, gols_v, obs))
+        
+        id_terceiro = mapa_paises.get(edicao.Terceiro_Lugar)
+        id_quarto = mapa_paises.get(edicao.Quarto_Lugar)
+        if id_terceiro and id_quarto:
+            gols_c, gols_v, obs = parse_placar(edicao.Placar_Disputa_Terceiro)
+            partidas_para_inserir.append((id_edicao_atual, 'Disputa 3º Lugar', id_terceiro, id_quarto, gols_c, gols_v, obs))
+
+    cursor.executemany(sql_insert_partida, partidas_para_inserir)
+    conn.commit()
+    print(f"{cursor.rowcount} novas partidas inseridas na tabela 'Partidas'.")
 
     print("\n--- INSERINDO JOGADORES NO BANCO ---")
     sql_insert_jogador = """
@@ -239,6 +278,9 @@ if __name__ == "__main__":
         raise ValueError("Não foi possível extrair a tabela de edições.")
     
     try:
+        # Normalizando os dados das tabelas
+        df_artilheiros['Jogador'] = df_artilheiros['Jogador'].str.replace(r'\[.*?\]', '', regex=True)
+        df_artilheiros['Jogador'] = df_artilheiros['Jogador'].str.strip()
         df_artilheiros['Seleção'] = df_artilheiros['Seleção'].str.strip()
         colunas_paises_edicoes = ['Sede', 'Campeao', 'Vice_Campeao', 'Terceiro_Lugar', 'Quarto_Lugar']
         for coluna in colunas_paises_edicoes:
@@ -250,7 +292,7 @@ if __name__ == "__main__":
 
         df_edicoes['Sede'] = df_edicoes['Sede'].str.replace('Coreia do Sul  Japão', 'Coreia do Sul / Japão')
         
-        print("\n\n--- 🗄️ INICIANDO PROCESSO DE INSERÇÃO NO BANCO DE DADOS ---")
+        print("\n\n--- INICIANDO PROCESSO DE INSERÇÃO NO BANCO DE DADOS ---")
         conexao_db = mysql.connector.connect(
             host='localhost',
             user='copa_user',

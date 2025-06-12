@@ -10,15 +10,21 @@ CREATE TABLE Paises (
 
 CREATE TABLE Edicoes (
     idEdicao INT PRIMARY KEY AUTO_INCREMENT,
-    ano INT NOT NULL UNIQUE,
-    idCampeao INT,
-    idViceCampeao INT,
-    idTerceiro INT,
-    idQuarto INT,
-    FOREIGN KEY (idCampeao) REFERENCES Paises(idPais),
-    FOREIGN KEY (idViceCampeao) REFERENCES Paises(idPais),
-    FOREIGN KEY (idTerceiro) REFERENCES Paises(idPais),
-    FOREIGN KEY (idQuarto) REFERENCES Paises(idPais)
+    ano INT NOT NULL UNIQUE
+);
+
+CREATE TABLE Partidas (
+    idPartida INT PRIMARY KEY AUTO_INCREMENT,
+    idEdicao INT NOT NULL,
+    fase VARCHAR(50) NOT NULL,
+    idTimeCasa INT,
+    idTimeFora INT,
+    golsTimeCasa INT,
+    golsTimeFora INT,
+    observacoesPlacar VARCHAR(50),
+    FOREIGN KEY (idEdicao) REFERENCES Edicoes(idEdicao),
+    FOREIGN KEY (idTimeCasa) REFERENCES Paises(idPais),
+    FOREIGN KEY (idTimeFora) REFERENCES Paises(idPais)
 );
 
 CREATE TABLE EdicaoSedes (
