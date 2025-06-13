@@ -17,14 +17,14 @@ CREATE TABLE Partida (
     idPartida INT PRIMARY KEY AUTO_INCREMENT,
     idEdicao INT NOT NULL,
     fase VARCHAR(50) NOT NULL,
-    idTimeCasa INT,
-    idTimeFora INT,
-    golsTimeCasa INT,
-    golsTimeFora INT,
+    idGanhador INT,
+    idPerdedor INT,
+    golsGanhador INT,
+    golsPerdedor INT,
     observacoesPlacar VARCHAR(50),
     FOREIGN KEY (idEdicao) REFERENCES Edicao(idEdicao),
-    FOREIGN KEY (idTimeCasa) REFERENCES Pais(idPais),
-    FOREIGN KEY (idTimeFora) REFERENCES Pais(idPais)
+    FOREIGN KEY (idGanhador) REFERENCES Pais(idPais),
+    FOREIGN KEY (idPerdedor) REFERENCES Pais(idPais)
 );
 
 CREATE TABLE EdicaoSede (

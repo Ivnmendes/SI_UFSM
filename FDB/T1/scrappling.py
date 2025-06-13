@@ -150,8 +150,8 @@ def popular_banco(conn, df_artilheiros, df_edicoes):
 
         queries_delete = [
             "DELETE FROM ParticipacaoJogador;", "DELETE FROM Jogador;",
-            "DELETE FROM EdicaoSedes;", "DELETE FROM Partidas;",
-            "DELETE FROM Edicoes;", "DELETE FROM Paises;"
+            "DELETE FROM EdicaoSede;", "DELETE FROM Partida;",
+            "DELETE FROM Edicao;", "DELETE FROM Pais;"
         ]
         sql_file.write("-- Comandos para limpar as tabelas antes de inserir (descomente se necessário)\n/*\n")
         for query in queries_delete:
@@ -169,32 +169,32 @@ def popular_banco(conn, df_artilheiros, df_edicoes):
         paises_set.discard('')
 
         print("Inserindo Países")
-        sql_insert_pais = "INSERT IGNORE INTO Paises (nome) VALUES (%s)"
+        sql_insert_pais = "INSERT IGNORE INTO Pais (nome) VALUES (%s)"
         lista_paises_tuplas = [(pais,) for pais in sorted(list(paises_set))]
         
         sql_file.write("-- Inserção de Países\n")
         for tupla in lista_paises_tuplas:
-            sql_file.write(f"INSERT IGNORE INTO Paises (nome) VALUES ({formatar_valor_sql(tupla[0])});\n")
+            sql_file.write(f"INSERT IGNORE INTO Pais (nome) VALUES ({formatar_valor_sql(tupla[0])});\n")
         
         cursor.executemany(sql_insert_pais, lista_paises_tuplas)
         conn.commit()
 
-        cursor.execute("SELECT idPais, nome FROM Paises")
+        cursor.execute("SELECT idPais, nome FROM Pais")
         mapa_paises = {nome: id for id, nome in cursor.fetchall()}
 
         print("Inserindo Edições")
-        sql_insert_edicao = "INSERT IGNORE INTO Edicoes (ano) VALUES (%s)"
+        sql_insert_edicao = "INSERT IGNORE INTO Edicao (ano) VALUES (%s)"
         anos_para_inserir = [(int(edicao.Ano),) for edicao in df_edicoes.itertuples()]
         sql_file.write("\n-- Inserção de Edições\n")
         for tupla in anos_para_inserir:
-             sql_file.write(f"INSERT IGNORE INTO Edicoes (ano) VALUES ({formatar_valor_sql(tupla[0])});\n")
+             sql_file.write(f"INSERT IGNORE INTO Edicao (ano) VALUES ({formatar_valor_sql(tupla[0])});\n")
         cursor.executemany(sql_insert_edicao, anos_para_inserir)
         conn.commit()
 
-        cursor.execute("SELECT idEdicao, ano FROM Edicoes")
+        cursor.execute("SELECT idEdicao, ano FROM Edicao")
         mapa_edicoes = {ano: id for id, ano in cursor.fetchall()}
         print("Vinculando Sedes")
-        sql_insert_sede = "INSERT IGNORE INTO EdicaoSedes (idEdicao, idPais) VALUES (%s, %s)"
+        sql_insert_sede = "INSERT IGNORE INTO EdicaoSede (idEdicao, idPais) VALUES (%s, %s)"
         sedes_para_inserir = []
         for edicao in df_edicoes.itertuples():
             id_edicao_atual = mapa_edicoes.get(edicao.Ano)
@@ -206,7 +206,7 @@ def popular_banco(conn, df_artilheiros, df_edicoes):
                         sedes_para_inserir.append((id_edicao_atual, id_pais_sede))
         sql_file.write("\n-- Vinculação de Sedes\n")
         for id_e, id_p in sedes_para_inserir:
-             sql_file.write(f"INSERT IGNORE INTO EdicaoSedes (idEdicao, idPais) VALUES ({formatar_valor_sql(id_e)}, {formatar_valor_sql(id_p)});\n")
+             sql_file.write(f"INSERT IGNORE INTO EdicaoSede (idEdicao, idPais) VALUES ({formatar_valor_sql(id_e)}, {formatar_valor_sql(id_p)});\n")
         cursor.executemany(sql_insert_sede, sedes_para_inserir)
         conn.commit()
 
@@ -226,11 +226,11 @@ def popular_banco(conn, df_artilheiros, df_edicoes):
                 gols_c, gols_v, obs = parse_placar(edicao.Placar_Disputa_Terceiro)
                 partidas_para_inserir.append((id_edicao_atual, 'Disputa 3º Lugar', id_terceiro, id_quarto, gols_c, gols_v, obs))
 
-        sql_insert_partida = "INSERT IGNORE INTO Partidas (idEdicao, fase, idTimeCasa, idTimeFora, golsTimeCasa, golsTimeFora, observacoesPlacar) VALUES (%s, %s, %s, %s, %s, %s, %s)"
+        sql_insert_partida = "INSERT IGNORE INTO Partida (idEdicao, fase, idGanhador, idPerdedor, golsGanhador, golsPerdedor, observacoesPlacar) VALUES (%s, %s, %s, %s, %s, %s, %s)"
         sql_file.write("\n-- Inserção de Partidas\n")
         for partida in partidas_para_inserir:
             valores_formatados = ", ".join([formatar_valor_sql(v) for v in partida])
-            sql_file.write(f"INSERT IGNORE INTO Partidas (idEdicao, fase, idTimeCasa, idTimeFora, golsTimeCasa, golsTimeFora, observacoesPlacar) VALUES ({valores_formatados});\n")
+            sql_file.write(f"INSERT IGNORE INTO Partida (idEdicao, fase, idGanhador, idPerdedor, golsGanhador, golsPerdedor, observacoesPlacar) VALUES ({valores_formatados});\n")
         cursor.executemany(sql_insert_partida, partidas_para_inserir)
         conn.commit()
 
