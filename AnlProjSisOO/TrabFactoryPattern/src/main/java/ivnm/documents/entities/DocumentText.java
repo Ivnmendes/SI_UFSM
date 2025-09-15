@@ -23,16 +23,15 @@ public class DocumentText extends AbstractDocument {
 
     @Override
     public void open() {
-        System.out.println("Abrindo documento...");
+        System.out.println("\nAbrindo documento...");
         FileManipulator.openArchive(this.fileName, this.content);
         System.out.println("Documento aberto, você está livre para manipulá-lo!");
     }
 
     @Override
     public void edit() {
-        List<String> oldContent = getContent();
-        List<String> newContent = new ArrayList<String>();
-        System.out.println("Editando documento... Pressione Ctrl+D para salvar e sair, ou Ctrl+C para cancelar.");
+        List<String> newContent = new ArrayList<>();
+        System.out.println("\nEditando documento... Pressione Ctrl+D para salvar e sair, ou Ctrl+C para cancelar.");
 
         try (Terminal terminal = TerminalBuilder.builder().system(true).build()) {
             LineReader lineReader = LineReaderBuilder.builder().terminal(terminal).build();
@@ -42,9 +41,9 @@ public class DocumentText extends AbstractDocument {
                 String currentLine;
                 String prompt;
 
-                if (count < content.size()) {
-                    currentLine = content.get(count);
-                    prompt = String.format("Linha %d/%d: ", count + 1, content.size());
+                if (count < this.getContent().size()) {
+                    currentLine = this.getContent().get(count);
+                    prompt = String.format("Linha %d/%d: ", count + 1, this.getContent().size());
                 }
                 else {
                     currentLine = "";
@@ -57,9 +56,9 @@ public class DocumentText extends AbstractDocument {
             }
         } catch (EndOfFileException e) {
             this.setContent(newContent);
-            System.out.println("\nEdição concluída e conteúdo salvo.");
+            System.out.println("\n\nEdição concluída e conteúdo salvo.");
         } catch (IOException e) {
-                System.err.println("Ocorreu um erro no terminal: " + e.getMessage());
+                System.err.println("\n\nOcorreu um erro no terminal: " + e.getMessage());
                 return;
         } catch (UserInterruptException e) {
             System.out.println("\n\nEdição cancelada pelo usuário.");
@@ -69,7 +68,7 @@ public class DocumentText extends AbstractDocument {
 
     @Override
     public void save() {
-        System.out.println("Salvando documento...");
+        System.out.println("\nSalvando documento...");
         FileManipulator.saveArchive(this.fileName, this.content);
         System.out.println("Documento salvo!");
     }
