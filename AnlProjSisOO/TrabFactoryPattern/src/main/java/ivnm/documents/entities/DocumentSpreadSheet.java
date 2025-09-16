@@ -11,6 +11,7 @@ import org.jline.terminal.TerminalBuilder;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class DocumentSpreadSheet extends AbstractDocument {
@@ -35,23 +36,43 @@ public class DocumentSpreadSheet extends AbstractDocument {
 
         try (Terminal terminal = TerminalBuilder.builder().system(true).build()) {
             LineReader lineReader = LineReaderBuilder.builder().terminal(terminal).build();
-            int count = 0;
-
+            int lineIndex = 0;
+            List<String> columns = null;
             while (true) {
                 String currentLine;
                 String prompt;
 
-                if (count < this.getContent().size()) {
-                    currentLine = this.getContent().get(count);
-                    prompt = String.format("Linha %d/%d: ", count + 1, this.getContent().size());
+                if (lineIndex < this.getContent().size()) {
+                    currentLine = this.getContent().get(lineIndex);
+                    prompt = String.format("Linha %d/%d: ", lineIndex + 1, this.getContent().size());
                 } else {
                     currentLine = "";
-                    prompt = String.format("Nova Linha %d: ", count + 1);
+                    prompt = String.format("Nova Linha %d: ", lineIndex + 1);
                 }
 
                 String userInput = lineReader.readLine(prompt, null, currentLine);
+
+                if (lineIndex == 0) {
+                    columns = Arrays.asList(userInput.split(","));
+                    newContent.add(userInput);
+                    lineIndex++;
+                    continue;
+                }
+
+                String[] userColumns = userInput.split(",");
+                if (userColumns.length != columns.size()) {
+                    if (userInput.trim().isEmpty() && currentLine.isEmpty()) {
+                        System.out.println("\nLinha em branco detectada, finalizando a adição de novas linhas.");
+                        throw new EndOfFileException();
+                    }
+
+                    System.out.println(String.format("ERRO: A linha deve ter %d colunas, mas você forneceu %d. Tente novamente.", columns.size(), userColumns.length));
+                    continue;
+                }
+
                 newContent.add(userInput);
-                count++;
+
+                lineIndex++;
             }
         } catch (EndOfFileException e) {
             this.setContent(newContent);

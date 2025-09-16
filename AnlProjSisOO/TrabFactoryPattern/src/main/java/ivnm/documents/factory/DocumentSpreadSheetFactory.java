@@ -15,7 +15,7 @@ public class DocumentSpreadSheetFactory implements DocumentFactory {
 
         String extension = fileName.substring(fileName.lastIndexOf('.'));
 
-        if (extension.equals(".xls")) {
+        if (extension.equals(".csv")) {
             return new DocumentSpreadSheet(fileName);
         }
 

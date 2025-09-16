@@ -35,7 +35,7 @@ public final class FileScann {
                         case ".txt":
                             textList.add(fileName);
                             break;
-                        case ".xls":
+                        case ".csv":
                             spreadSheetList.add(fileName);
                             break;
                         case ".pst":

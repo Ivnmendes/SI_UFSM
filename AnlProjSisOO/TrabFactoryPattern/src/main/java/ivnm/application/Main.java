@@ -23,7 +23,7 @@ public class Main {
     private static final DocumentSpreadSheetFactory documentSpreadSheetFactory = new DocumentSpreadSheetFactory();
     private static final DocumentPresentationFactory documentPresentationFactory = new DocumentPresentationFactory();
     private static final Scanner scanner = new Scanner(System.in);
-    private static Terminal terminal;
+    private static final Terminal terminal;
     private static LineReader lineReader;
 
     static {
@@ -78,7 +78,7 @@ public class Main {
         textFiles.forEach(System.out::println);
         if (textFiles.isEmpty()) System.out.println("(Nenhum arquivo)");
 
-        System.out.println("\n--- Planilhas (.xls) ---");
+        System.out.println("\n--- Planilhas (.csv) ---");
         spreadSheetFiles.forEach(System.out::println);
         if (spreadSheetFiles.isEmpty()) System.out.println("(Nenhum arquivo)");
 
@@ -103,13 +103,14 @@ public class Main {
         String fileName = scanner.nextLine();
 
         if (!isValidFilename(fileName)) {
-            System.out.println("Nome de arquivo inválido. Deve conter uma extensão suportada (.txt, .xls, .pst).");
+            System.out.println("Nome de arquivo inválido. Deve conter uma extensão suportada (.txt, .csv, .pst).");
             return;
         }
 
         try {
             currentDocument = createDocumentByFileName(fileName);
-
+            terminal.puts(InfoCmp.Capability.clear_screen);
+            terminal.flush();
             System.out.println("Arquivo '" + fileName + "' criado e aberto!");
         } catch (IllegalArgumentException e) {
             System.out.println("Erro: " + e.getMessage());
@@ -135,7 +136,7 @@ public class Main {
 
         return switch (extension) {
             case ".txt" -> documentTextFactory.createDocument(fileName);
-            case ".xls" -> documentSpreadSheetFactory.createDocument(fileName);
+            case ".csv" -> documentSpreadSheetFactory.createDocument(fileName);
             case ".pst" -> documentPresentationFactory.createDocument(fileName);
             default -> throw new IllegalArgumentException("Tipo de arquivo não suportado");
         };
@@ -153,6 +154,6 @@ public class Main {
         if (fileName == null || fileName.trim().isEmpty()) {
             return false;
         }
-        return fileName.endsWith(".txt") || fileName.endsWith(".xls") || fileName.endsWith(".pst");
+        return fileName.endsWith(".txt") || fileName.endsWith(".csv") || fileName.endsWith(".pst");
     }
 }
