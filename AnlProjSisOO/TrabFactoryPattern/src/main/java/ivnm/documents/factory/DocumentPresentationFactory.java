@@ -1,7 +1,6 @@
 package ivnm.documents.factory;
 
 import ivnm.documents.entities.AbstractDocument;
-import ivnm.documents.entities.Document;
 import ivnm.documents.entities.DocumentPresentation;
 
 public class DocumentPresentationFactory implements DocumentFactory {

@@ -59,10 +59,8 @@ public class DocumentText extends AbstractDocument {
             System.out.println("\n\nEdição concluída e conteúdo salvo.");
         } catch (IOException e) {
                 System.err.println("\n\nOcorreu um erro no terminal: " + e.getMessage());
-                return;
         } catch (UserInterruptException e) {
             System.out.println("\n\nEdição cancelada pelo usuário.");
-            return;
         }
     }
 

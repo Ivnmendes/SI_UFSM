@@ -148,6 +148,7 @@ public class Main {
             return;
         }
         currentDocument.save();
+        currentDocument = null;
     }
 
     private static boolean isValidFilename(String fileName) {
