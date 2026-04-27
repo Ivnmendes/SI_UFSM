@@ -1,187 +1,150 @@
 import pandas as pd
-import numpy as np
 import cbrkit
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, mean_absolute_error
 
-def carregar_dados(caminho_arquivo):
-    """
-    Carrega o dataset e calcula as diferenças máximas para features numéricas.
 
-    Args:
-        caminho_arquivo (str): Caminho para o arquivo CSV.
-
-    Returns:
-        tuple: (casos, max_diffs)
-            - casos (dict): Dicionário de casos indexados pelo ID.
-            - max_diffs (dict): Diferença máxima calculada para cada feature numérica.
-    """
-    df = pd.read_csv(caminho_arquivo)
-    
-    num_features = [
-        'age', 'anxiety_score', 'depression_score', 'stress_level', 
-        'sleep_quality', 'sleep_hours', 'symptom_duration_months', 
-        'gad7_estimate', 'phq9_estimate', 'irritability_level', 
-        'bmi_estimate'
-    ]
-    max_diffs = {f: df[f].max() - df[f].min() for f in num_features if df[f].max() != df[f].min()}
-    
-    casos = df.to_dict(orient='index')
-    return casos, max_diffs
-
-def sim_numerica(val1, val2, max_diff):
-    """
-    Calcula a similaridade entre valores numéricos utilizando distância normalizada.
-
-    Args:
-        val1 (float): Valor do caso base.
-        val2 (float): Valor do caso de consulta.
-        max_diff (float): Diferença máxima permitida para a feature.
-
-    Returns:
-        float: Similaridade calculada entre 0.0 e 1.0.
-    """
-    if pd.isna(val1) or pd.isna(val2) or max_diff == 0:
+def sim_numerica(val_base, val_novo, diferenca_maxima):
+    """Calcula similaridade numérica (distância normalizada)."""
+    if pd.isna(val_base) or pd.isna(val_novo): 
         return 0.0
-    return max(0.0, 1.0 - (abs(val1 - val2) / max_diff))
+    distancia = abs(val_base - val_novo)
+    similaridade = 1.0 - (distancia / diferenca_maxima)
+    return max(0.0, similaridade)
 
-def sim_categorica(val1, val2):
-    """
-    Calcula a similaridade entre valores categóricos por correspondência exata.
+def sim_categorica(val_base, val_novo):
+    """Calcula similaridade categórica (igualdade exata)."""
+    return 1.0 if str(val_base).lower() == str(val_novo).lower() else 0.0
 
-    Args:
-        val1 (str): Valor do caso base.
-        val2 (str): Valor do caso de consulta.
-
-    Returns:
-        float: 1.0 para valores iguais, 0.0 para diferentes.
-    """
-    if pd.isna(val1) or pd.isna(val2):
-        return 0.0
-    return 1.0 if val1 == val2 else 0.0
-
-def sim_textual_jaccard(str1, str2):
-    """
-    Calcula a similaridade entre campos de texto usando o Índice de Jaccard.
-
-    Args:
-        str1 (str): Texto do caso base.
-        str2 (str): Texto do caso de consulta.
-
-    Returns:
-        float: Proporção de sobreposição de palavras entre os dois textos.
-    """
-    if pd.isna(str1) or pd.isna(str2):
-        return 0.0
-    set1 = set(str(str1).lower().split())
-    set2 = set(str(str2).lower().split())
-    inter = set1.intersection(set2)
-    union = set1.union(set2)
-    return len(inter) / len(union) if union else 0.0
-
-def criar_sim_global(max_diffs):
-    """
-    Retorna a função de similaridade global que agrega as funções locais.
-
-    Args:
-        max_diffs (dict): Dicionário de diferenças máximas para features numéricas.
-
-    Returns:
-        function: Função que calcula a média aritmética das similaridades locais.
-    """
-    def global_sim(case, query):
-        sim_num = [sim_numerica(case.get(f), query.get(f), max_diffs.get(f, 1)) 
-                   for f in max_diffs.keys()]
-        
-        cat_features = [
-            'gender', 'social_support', 'physical_activity', 'panic_symptoms', 
-            'concentration_difficulty', 'appetite_change', 'prior_treatment', 
-            'current_medication', 'trauma_history', 'substance_use_risk', 
-            'comorbid_profile', 'clinical_severity', 'work_or_study_impairment'
-        ]
-        sim_cat = [sim_categorica(case.get(f), query.get(f)) for f in cat_features]
-        
-        sim_text = [sim_textual_jaccard(case.get('main_issue'), query.get('main_issue'))]
-        
-        todas_sim = sim_num + sim_cat + sim_text
-        return float(np.mean(todas_sim)) if todas_sim else 0.0
-    return global_sim
-
-def adaptar_solucao(solucao_recuperada, problema_novo):
-    """
-    Adapta a solução do caso recuperado com base nas características do novo problema.
-
-    Args:
-        solucao_recuperada (dict): Dicionário contendo a solução base.
-        problema_novo (dict): Dicionário contendo as features da consulta.
-
-    Returns:
-        dict: Solução adaptada através de regras heurísticas.
-    """
-    solucao_adaptada = solucao_recuperada.copy()
+def sim_textual(texto_base, texto_novo):
+    """Calcula similaridade de strings (Índice de Jaccard)."""
+    palavras_base = set(str(texto_base).lower().split())
+    palavras_novo = set(str(texto_novo).lower().split())
     
+    if len(palavras_base) == 0 and len(palavras_novo) == 0:
+        return 0.0
+        
+    intersecao = palavras_base.intersection(palavras_novo)
+    uniao = palavras_base.union(palavras_novo)
+    return len(intersecao) / len(uniao)
+
+
+def calcular_similaridade_global(caso_base, caso_novo):
+    """Agrega as similaridades locais comparando TODOS os atributos do problema."""
+    notas = []
+    
+    notas.append(sim_numerica(caso_base.get('age'), caso_novo.get('age'), diferenca_maxima=25))
+    notas.append(sim_numerica(caso_base.get('anxiety_score'), caso_novo.get('anxiety_score'), diferenca_maxima=8))
+    notas.append(sim_numerica(caso_base.get('depression_score'), caso_novo.get('depression_score'), diferenca_maxima=7))
+    notas.append(sim_numerica(caso_base.get('stress_level'), caso_novo.get('stress_level'), diferenca_maxima=8))
+    notas.append(sim_numerica(caso_base.get('sleep_quality'), caso_novo.get('sleep_quality'), diferenca_maxima=9))
+    notas.append(sim_numerica(caso_base.get('sleep_hours'), caso_novo.get('sleep_hours'), diferenca_maxima=3.9))
+    notas.append(sim_numerica(caso_base.get('symptom_duration_months'), caso_novo.get('symptom_duration_months'), diferenca_maxima=9))
+    notas.append(sim_numerica(caso_base.get('gad7_estimate'), caso_novo.get('gad7_estimate'), diferenca_maxima=21))
+    notas.append(sim_numerica(caso_base.get('phq9_estimate'), caso_novo.get('phq9_estimate'), diferenca_maxima=27))
+    notas.append(sim_numerica(caso_base.get('irritability_level'), caso_novo.get('irritability_level'), diferenca_maxima=8))
+    notas.append(sim_numerica(caso_base.get('bmi_estimate'), caso_novo.get('bmi_estimate'), diferenca_maxima=11))
+    
+    notas.append(sim_categorica(caso_base.get('gender'), caso_novo.get('gender')))
+    notas.append(sim_categorica(caso_base.get('social_support'), caso_novo.get('social_support')))
+    notas.append(sim_categorica(caso_base.get('physical_activity'), caso_novo.get('physical_activity')))
+    notas.append(sim_categorica(caso_base.get('panic_symptoms'), caso_novo.get('panic_symptoms')))
+    notas.append(sim_categorica(caso_base.get('concentration_difficulty'), caso_novo.get('concentration_difficulty')))
+    notas.append(sim_categorica(caso_base.get('appetite_change'), caso_novo.get('appetite_change')))
+    notas.append(sim_categorica(caso_base.get('prior_treatment'), caso_novo.get('prior_treatment')))
+    notas.append(sim_categorica(caso_base.get('current_medication'), caso_novo.get('current_medication')))
+    notas.append(sim_categorica(caso_base.get('trauma_history'), caso_novo.get('trauma_history')))
+    notas.append(sim_categorica(caso_base.get('substance_use_risk'), caso_novo.get('substance_use_risk')))
+    notas.append(sim_categorica(caso_base.get('comorbid_profile'), caso_novo.get('comorbid_profile')))
+    notas.append(sim_categorica(caso_base.get('clinical_severity'), caso_novo.get('clinical_severity')))
+    notas.append(sim_categorica(caso_base.get('work_or_study_impairment'), caso_novo.get('work_or_study_impairment')))
+
+    notas.append(sim_textual(caso_base.get('main_issue'), caso_novo.get('main_issue')))
+    
+    # Retorna a média de todas as 25 notas
+    return sum(notas) / len(notas)
+
+
+def adaptar_solucao(caso_recuperado, problema_novo):
+    """
+    Modifica a solução do caso histórico com base no novo problema.
+    Recebe as 4 features da solução e aplica regras de domínio.
+    """
+    # 1. Herda a solução original do caso mais similar
+    solucao = {
+        'intervention_type': caso_recuperado.get('intervention_type'),
+        'intensity': caso_recuperado.get('intensity', 0),
+        'weekly_frequency': caso_recuperado.get('weekly_frequency', 0),
+        'recommendation_text': str(caso_recuperado.get('recommendation_text', ''))
+    }
+    
+    houve_adaptacao = False
+
+    # Regra 1 (Adaptação Numérica): Aumenta a intensidade se o caso for grave
     if problema_novo.get('clinical_severity') == 'High':
-        solucao_adaptada['intensity'] = min(10, solucao_adaptada['intensity'] + 2)
+        solucao['intensity'] = min(10, solucao['intensity'] + 2)
+        houve_adaptacao = True
         
-    if problema_novo.get('age', 0) > 60 and solucao_adaptada['weekly_frequency'] > 2:
-        solucao_adaptada['weekly_frequency'] -= 1
+    # Regra 2 (Adaptação Numérica restritiva): Reduz frequência para idosos
+    if problema_novo.get('age', 0) > 60 and solucao['weekly_frequency'] > 2:
+        solucao['weekly_frequency'] = 2
+        houve_adaptacao = True
         
-    if problema_novo.get('substance_use_risk') == 'High' and 'Substance' not in str(solucao_adaptada.get('intervention_type', '')):
-        solucao_adaptada['intervention_type'] = 'Dual Diagnosis Therapy'
+    # Regra 3 (Adaptação Categórica): Substitui o tratamento se houver risco de vício
+    if problema_novo.get('substance_use_risk') == 'High' and 'Substance' not in str(solucao['intervention_type']):
+        solucao['intervention_type'] = 'therapy'
+        houve_adaptacao = True
         
-    solucao_adaptada['recommendation_text'] = str(solucao_adaptada.get('recommendation_text', '')) + " [Adaptado]"
-    return solucao_adaptada
+    # Regra 4 (Adaptação de String): Garante a rastreabilidade da decisão
+    if houve_adaptacao:
+        solucao['recommendation_text'] += " [Nota: Solução modificada por heurísticas]"
 
-def avaliar_sistema(casos_completos, max_diffs, k=3):
-    """
-    Executa a avaliação do sistema por validação Leave-One-Out e imprime as métricas.
+    return solucao
 
-    Args:
-        casos_completos (dict): Base contendo todos os casos.
-        max_diffs (dict): Dicionário de diferenças máximas.
-        k (int, optional): Limite para vizinhos mais próximos. Padrão é 3.
-    """
-    y_true_intencao = []
-    y_pred_intencao = []
-    y_true_intensidade = []
-    y_pred_intensidade = []
+
+def main():
+    df = pd.read_csv("./base_de_casos/cbr_psychology_110_cases_clinical.csv")
+    base_completa = df.to_dict(orient='index')
     
-    sim_func = criar_sim_global(max_diffs)
-    ids_casos = list(casos_completos.keys())
+    resultados_reais_tipo = []
+    resultados_previstos_tipo = []
+    resultados_reais_intensidade = []
+    resultados_previstos_intensidade = []
     
-    for id_teste in ids_casos:
-        query = casos_completos[id_teste]
-        casebase = {chave: valor for chave, valor in casos_completos.items() if chave != id_teste}
+    buscador = cbrkit.retrieval.build(calcular_similaridade_global)
+    
+    print("Iniciando Validação Leave-One-Out...")
+    
+    for id_teste in base_completa.keys():
+        novo_caso = base_completa[id_teste]
         
-        retriever = cbrkit.retrieval.build(sim_func)
-        resultado = cbrkit.retrieval.apply_query(casebase, query, retriever)
+        base_conhecimento = {k: v for k, v in base_completa.items() if k != id_teste}
         
-        if not resultado.ranking:
+        resultado_busca = cbrkit.retrieval.apply_query(base_conhecimento, novo_caso, buscador)
+        
+        if not resultado_busca.ranking:
             continue
             
-        id_mais_similar = resultado.ranking[0]
-        # Atribuição duplicada de caso_recuperado foi removida
-        caso_recuperado = casebase[id_mais_similar]
+        # Pega o ID do caso mais similar (k=1)
+        id_mais_similar = resultado_busca.ranking[0]
+        caso_recuperado = base_conhecimento[id_mais_similar]
         
-        solucao_adaptada = adaptar_solucao(caso_recuperado, query)
+        solucao_final = adaptar_solucao(caso_recuperado, novo_caso)
         
-        y_true_intencao.append(query['intervention_type'])
-        y_pred_intencao.append(solucao_adaptada['intervention_type'])
-        y_true_intensidade.append(query['intensity'])
-        y_pred_intensidade.append(solucao_adaptada['intensity'])
+        # Guarda os dados para gerar o relatório final
+        resultados_reais_tipo.append(novo_caso['intervention_type'])
+        resultados_previstos_tipo.append(solucao_final['intervention_type'])
         
-    print("--- Resultados da Avaliação ---")
-    print(f"Acurácia (Intervention Type): {accuracy_score(y_true_intencao, y_pred_intencao):.2f}")
-    print(f"Precisão Ponderada: {precision_score(y_true_intencao, y_pred_intencao, average='weighted', zero_division=0):.2f}")
-    print(f"Recall Ponderado: {recall_score(y_true_intencao, y_pred_intencao, average='weighted', zero_division=0):.2f}")
-    print(f"F1-Score Ponderado: {f1_score(y_true_intencao, y_pred_intencao, average='weighted', zero_division=0):.2f}")
+        resultados_reais_intensidade.append(novo_caso['intensity'])
+        resultados_previstos_intensidade.append(solucao_final['intensity'])
+
+    print("\n--- Resultados Finais ---")
+    print(f"Acurácia (Accuracy): {accuracy_score(resultados_reais_tipo, resultados_previstos_tipo):.2f}")
+    print(f"Precisão Ponderada (Precision): {precision_score(resultados_reais_tipo, resultados_previstos_tipo, average='weighted', zero_division=0):.2f}")
+    print(f"Recall Ponderado: {recall_score(resultados_reais_tipo, resultados_previstos_tipo, average='weighted', zero_division=0):.2f}")
+    print(f"F1-Score Ponderado: {f1_score(resultados_reais_tipo, resultados_previstos_tipo, average='weighted', zero_division=0):.2f}")
     
-    mae_intensidade = mean_absolute_error(y_true_intensidade, y_pred_intensidade)
-    print(f"Erro de Adaptação (MAE - Intensity): {mae_intensidade:.2f}")
-    
+    erro_adaptacao = mean_absolute_error(resultados_reais_intensidade, resultados_previstos_intensidade)
+    print(f"Erro de Adaptação (Intensidade MAE): {erro_adaptacao:.2f}")
+
 if __name__ == "__main__":
-    caminho = "./base_de_casos/cbr_psychology_110_cases_clinical.csv"
-    try:
-        casos, max_diffs = carregar_dados(caminho)
-        avaliar_sistema(casos, max_diffs, k=3)
-    except FileNotFoundError:
-        print(f"Erro: Arquivo '{caminho}' não encontrado.")
+    main()
