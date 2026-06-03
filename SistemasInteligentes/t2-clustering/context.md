@@ -1,0 +1,1 @@
+artigo usado: https://pubmed.ncbi.nlm.nih.gov/24084292/
