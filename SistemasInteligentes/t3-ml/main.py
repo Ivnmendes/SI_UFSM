@@ -5,6 +5,8 @@ from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.pipeline import Pipeline
+from sklearn.ensemble import RandomForestClassifier
+import matplotlib.pyplot as plt
 
 df = pd.read_csv('data/heart.csv')
 
@@ -43,3 +45,24 @@ X_test_processado = preprocessor.transform(X_test)
 print(f"Formato original de X_train: {X_train.shape}")
 print(f"Formato de X_train após pré-processamento: {X_train_processado.shape}")
 
+nomes_features = preprocessor.get_feature_names_out()
+
+seletor_rf = RandomForestClassifier(n_estimators=100, random_state=42)
+seletor_rf.fit(X_train_processado, y_train)
+
+importancias = pd.DataFrame({
+    'Feature': nomes_features,
+    'Importancia': seletor_rf.feature_importances_
+}).sort_values(by='Importancia', ascending=False)
+
+print("\n--- RANKING DE IMPORTÂNCIA DAS FEATURES ---")
+print(importancias.to_string(index=False))
+
+top_n = 10
+indices_selecionados = importancias.head(top_n).index
+
+X_train_selecionado = X_train_processado[:, indices_selecionados]
+X_test_selecionado = X_test_processado[:, indices_selecionados]
+
+print(f"\nQuantidade inicial de atributos (após processamento): {X_train_processado.shape[1]}")
+print(f"Quantidade final de atributos selecionados: {X_train_selecionado.shape[1]}")
