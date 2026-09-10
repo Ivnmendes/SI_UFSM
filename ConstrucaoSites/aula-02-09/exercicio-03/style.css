@@ -1,0 +1,9 @@
+a {
+    display: block;
+    margin: 40px;
+    border: 2px solid blue;
+    width: fit-content;
+    border-radius: 10%;
+    background-color: lightblue;
+    color: blueviolet;
+}

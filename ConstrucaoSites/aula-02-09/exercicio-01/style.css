@@ -1,0 +1,9 @@
+li {
+    color: blue;
+    font-family: 'Times New Roman', Times, serif;
+    margin-bottom: 30px;
+}
+
+ul {
+    list-style-type: square;
+}

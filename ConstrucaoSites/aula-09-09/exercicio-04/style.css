@@ -1,0 +1,32 @@
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+}
+table {
+    border-collapse: collapse;
+    width: 100%;
+    max-width: 800px;
+    margin: 0 auto;
+}
+table, th, td {
+    border: 1px solid #333333;
+}
+th, td {
+    padding: 12px;
+}
+thead {
+    background-color: #d35400;
+    color: #ffffff;
+}
+caption {
+    font-size: 1.5em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+tfoot {
+    background-color: #f2f2f2;
+    font-weight: bold;
+}
+.coluna-preco {
+    text-align: right;
+}
