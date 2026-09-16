@@ -158,8 +158,8 @@ void sendAck(uint8_t seq)
   serialLink.write(TYPE_ACK);
   serialLink.write(seq);
 
-  serialLink.write(0);
-  serialLink.write(0);
+  serialLink.write((uint8_t)0);
+  serialLink.write((uint8_t)0);
 
   serialLink.write(crc & 0xFF);
   serialLink.write((crc >> 8) & 0xFF);
@@ -186,8 +186,8 @@ void sendNack(uint8_t seq)
   serialLink.write(TYPE_NACK);
   serialLink.write(seq);
 
-  serialLink.write(0);
-  serialLink.write(0);
+  serialLink.write((uint8_t)0);
+  serialLink.write((uint8_t)0);
 
   serialLink.write(crc & 0xFF);
   serialLink.write((crc >> 8) & 0xFF);

@@ -9,7 +9,7 @@ SoftwareSerial serialLink(10, 11); // RX, TX
 
 const uint8_t SOF = 0xAA;
 
-// Tipos de mensagem
+// Tipos
 const uint8_t TYPE_BYTE  = 0x01;
 const uint8_t TYPE_WORD  = 0x02;
 const uint8_t TYPE_FLOAT = 0x03;
@@ -25,7 +25,7 @@ const uint8_t MAX_RETRIES = 3;
 
 
 // ============================================================
-// VARIÁVEIS DO PROTOCOLO
+// VARIÁVEIS
 // ============================================================
 
 uint8_t sequence = 0;
@@ -33,12 +33,11 @@ uint8_t sequence = 0;
 bool hasReceivedSequence = false;
 uint8_t lastReceivedSequence = 0;
 
-// Controle de ACK/NACK
 bool responseReceived = false;
 bool responseAccepted = false;
 uint8_t responseSequence = 0;
 
-// Simulação de falhas
+// Simulação de falha
 bool corruptNextFrame = false;
 bool dropNextAck = false;
 
@@ -71,7 +70,7 @@ uint16_t receivedCrc;
 
 
 // ============================================================
-// CRC-16-CCITT
+// CRC
 // ============================================================
 
 void updateCRC(uint16_t &crc, uint8_t value)
@@ -114,7 +113,7 @@ uint16_t calculateCRC(
 
 
 // ============================================================
-// RESET DO PARSER
+// RESET
 // ============================================================
 
 void resetParser()
@@ -130,33 +129,37 @@ void resetParser()
 
 
 // ============================================================
-// ENVIO DE ACK
+// ACK
 // ============================================================
 
 void sendAck(uint8_t seq)
 {
   // Simula perda de ACK
   if (dropNextAck) {
+
     dropNextAck = false;
 
-    Serial.println("[TESTE] ACK perdido propositalmente.");
+    Serial.println(
+      "[TESTE] ACK perdido propositalmente."
+    );
 
     return;
   }
 
-  uint16_t crc = calculateCRC(
-    TYPE_ACK,
-    seq,
-    0,
-    nullptr
-  );
+  uint16_t crc =
+    calculateCRC(
+      TYPE_ACK,
+      seq,
+      0,
+      nullptr
+    );
 
   serialLink.write(SOF);
   serialLink.write(TYPE_ACK);
   serialLink.write(seq);
 
-  serialLink.write(0);
-  serialLink.write(0);
+  serialLink.write((uint8_t)0);
+  serialLink.write((uint8_t)0);
 
   serialLink.write(crc & 0xFF);
   serialLink.write((crc >> 8) & 0xFF);
@@ -166,24 +169,25 @@ void sendAck(uint8_t seq)
 
 
 // ============================================================
-// ENVIO DE NACK
+// NACK
 // ============================================================
 
 void sendNack(uint8_t seq)
 {
-  uint16_t crc = calculateCRC(
-    TYPE_NACK,
-    seq,
-    0,
-    nullptr
-  );
+  uint16_t crc =
+    calculateCRC(
+      TYPE_NACK,
+      seq,
+      0,
+      nullptr
+    );
 
   serialLink.write(SOF);
   serialLink.write(TYPE_NACK);
   serialLink.write(seq);
 
-  serialLink.write(0);
-  serialLink.write(0);
+  serialLink.write((uint8_t)0);
+  serialLink.write((uint8_t)0);
 
   serialLink.write(crc & 0xFF);
   serialLink.write((crc >> 8) & 0xFF);
@@ -193,27 +197,36 @@ void sendNack(uint8_t seq)
 
 
 // ============================================================
-// PROCESSAMENTO DE QUADRO RECEBIDO
+// PROCESSAMENTO
 // ============================================================
 
 void processFrame()
 {
-  uint16_t calculatedCRC = calculateCRC(
-    receivedType,
-    receivedSequence,
-    receivedSize,
-    receivedPayload
-  );
+  uint16_t calculatedCRC =
+    calculateCRC(
+      receivedType,
+      receivedSequence,
+      receivedSize,
+      receivedPayload
+    );
+
 
   // ----------------------------------------------------------
-  // CRC INCORRETO
+  // CRC
   // ----------------------------------------------------------
 
-  if (calculatedCRC != receivedCrc) {
+  if (
+    calculatedCRC !=
+    receivedCrc
+  ) {
 
-    Serial.println("ERRO: CRC invalido.");
+    Serial.println(
+      "ERRO: CRC invalido."
+    );
 
-    sendNack(receivedSequence);
+    sendNack(
+      receivedSequence
+    );
 
     return;
   }
@@ -245,61 +258,90 @@ void processFrame()
 
 
   // ----------------------------------------------------------
-  // MENSAGEM DUPLICADA
+  // DUPLICATA
   // ----------------------------------------------------------
 
   if (
     hasReceivedSequence &&
-    receivedSequence == lastReceivedSequence
+    receivedSequence ==
+    lastReceivedSequence
   ) {
 
-    Serial.println("Mensagem duplicada detectada.");
+    Serial.println(
+      "Mensagem duplicada detectada."
+    );
 
-    sendAck(receivedSequence);
+    /*
+     * A mensagem já foi processada.
+     * Apenas reenviamos o ACK.
+     */
+
+    sendAck(
+      receivedSequence
+    );
 
     return;
   }
 
 
   // ----------------------------------------------------------
-  // VALIDACAO DOS TAMANHOS
+  // TAMANHOS
   // ----------------------------------------------------------
 
   if (
     receivedType == TYPE_BYTE &&
     receivedSize != 1
   ) {
-    sendNack(receivedSequence);
+
+    sendNack(
+      receivedSequence
+    );
+
     return;
   }
+
 
   if (
     receivedType == TYPE_WORD &&
     receivedSize != 2
   ) {
-    sendNack(receivedSequence);
+
+    sendNack(
+      receivedSequence
+    );
+
     return;
   }
+
 
   if (
     receivedType == TYPE_FLOAT &&
     receivedSize != sizeof(float)
   ) {
-    sendNack(receivedSequence);
+
+    sendNack(
+      receivedSequence
+    );
+
     return;
   }
 
 
   // ----------------------------------------------------------
-  // PROCESSAMENTO
+  // DADOS
   // ----------------------------------------------------------
 
   switch (receivedType) {
 
     case TYPE_BYTE:
 
-      Serial.print("BYTE recebido: ");
-      Serial.println(receivedPayload[0]);
+      Serial.print(
+        "BYTE recebido: "
+      );
+
+      Serial.println(
+        receivedPayload[0]
+      );
 
       break;
 
@@ -310,7 +352,10 @@ void processFrame()
         (uint16_t)receivedPayload[0] |
         ((uint16_t)receivedPayload[1] << 8);
 
-      Serial.print("WORD recebido: ");
+      Serial.print(
+        "WORD recebido: "
+      );
+
       Serial.println(value);
 
       break;
@@ -327,8 +372,14 @@ void processFrame()
         sizeof(float)
       );
 
-      Serial.print("FLOAT recebido: ");
-      Serial.println(value, 5);
+      Serial.print(
+        "FLOAT recebido: "
+      );
+
+      Serial.println(
+        value,
+        5
+      );
 
       break;
     }
@@ -336,10 +387,19 @@ void processFrame()
 
     case TYPE_DATA:
 
-      Serial.print("DATA recebida: ");
+      Serial.print(
+        "DATA recebida: "
+      );
 
-      for (uint16_t i = 0; i < receivedSize; i++) {
-        Serial.write(receivedPayload[i]);
+      for (
+        uint16_t i = 0;
+        i < receivedSize;
+        i++
+      ) {
+
+        Serial.write(
+          receivedPayload[i]
+        );
       }
 
       Serial.println();
@@ -349,22 +409,30 @@ void processFrame()
 
     default:
 
-      Serial.println("Tipo de mensagem desconhecido.");
+      Serial.println(
+        "Tipo desconhecido."
+      );
 
-      sendNack(receivedSequence);
+      sendNack(
+        receivedSequence
+      );
 
       return;
   }
 
 
   // ----------------------------------------------------------
-  // MENSAGEM RECEBIDA COM SUCESSO
+  // SUCESSO
   // ----------------------------------------------------------
 
   hasReceivedSequence = true;
-  lastReceivedSequence = receivedSequence;
 
-  sendAck(receivedSequence);
+  lastReceivedSequence =
+    receivedSequence;
+
+  sendAck(
+    receivedSequence
+  );
 }
 
 
@@ -389,7 +457,8 @@ void processByte(uint8_t value)
 
       receivedType = value;
 
-      parserState = READ_SEQUENCE;
+      parserState =
+        READ_SEQUENCE;
 
       break;
 
@@ -398,7 +467,8 @@ void processByte(uint8_t value)
 
       receivedSequence = value;
 
-      parserState = READ_SIZE_LOW;
+      parserState =
+        READ_SIZE_LOW;
 
       break;
 
@@ -407,31 +477,44 @@ void processByte(uint8_t value)
 
       receivedSize = value;
 
-      parserState = READ_SIZE_HIGH;
+      parserState =
+        READ_SIZE_HIGH;
 
       break;
 
 
     case READ_SIZE_HIGH:
 
-      receivedSize |= ((uint16_t)value << 8);
+      receivedSize |=
+        ((uint16_t)value << 8);
 
       receivedPayloadIndex = 0;
 
-      if (receivedSize > MAX_PAYLOAD) {
 
-        Serial.println("ERRO: payload muito grande.");
+      if (
+        receivedSize >
+        MAX_PAYLOAD
+      ) {
+
+        Serial.println(
+          "ERRO: payload muito grande."
+        );
 
         resetParser();
 
         break;
       }
 
+
       if (receivedSize == 0) {
-        parserState = READ_CRC_LOW;
+
+        parserState =
+          READ_CRC_LOW;
       }
       else {
-        parserState = READ_PAYLOAD;
+
+        parserState =
+          READ_PAYLOAD;
       }
 
       break;
@@ -443,8 +526,14 @@ void processByte(uint8_t value)
         receivedPayloadIndex++
       ] = value;
 
-      if (receivedPayloadIndex >= receivedSize) {
-        parserState = READ_CRC_LOW;
+
+      if (
+        receivedPayloadIndex >=
+        receivedSize
+      ) {
+
+        parserState =
+          READ_CRC_LOW;
       }
 
       break;
@@ -454,14 +543,16 @@ void processByte(uint8_t value)
 
       receivedCrc = value;
 
-      parserState = READ_CRC_HIGH;
+      parserState =
+        READ_CRC_HIGH;
 
       break;
 
 
     case READ_CRC_HIGH:
 
-      receivedCrc |= ((uint16_t)value << 8);
+      receivedCrc |=
+        ((uint16_t)value << 8);
 
       processFrame();
 
@@ -473,14 +564,17 @@ void processByte(uint8_t value)
 
 
 // ============================================================
-// ATUALIZAÇÃO DA COMUNICAÇÃO
+// UPDATE
 // ============================================================
 
 void updateProtocol()
 {
-  while (serialLink.available()) {
+  while (
+    serialLink.available()
+  ) {
 
-    uint8_t value = serialLink.read();
+    uint8_t value =
+      serialLink.read();
 
     processByte(value);
   }
@@ -488,28 +582,35 @@ void updateProtocol()
 
 
 // ============================================================
-// ESPERA ACK/NACK
+// ACK/NACK
 // ============================================================
 
-bool waitForResponse(uint8_t expectedSequence)
+bool waitForResponse(
+  uint8_t expectedSequence
+)
 {
   responseReceived = false;
   responseAccepted = false;
   responseSequence = 0;
 
-  unsigned long startTime = millis();
+  unsigned long startTime =
+    millis();
+
 
   while (
     millis() - startTime <
     TIMEOUT_MS
   ) {
 
-    while (serialLink.available()) {
+    while (
+      serialLink.available()
+    ) {
 
       uint8_t value =
         serialLink.read();
 
       processByte(value);
+
 
       if (
         responseReceived &&
@@ -522,14 +623,17 @@ bool waitForResponse(uint8_t expectedSequence)
     }
   }
 
-  Serial.println("TIMEOUT: nenhum ACK/NACK recebido.");
+
+  Serial.println(
+    "TIMEOUT: nenhum ACK/NACK recebido."
+  );
 
   return false;
 }
 
 
 // ============================================================
-// ENVIO DE QUADRO
+// ENVIO
 // ============================================================
 
 bool sendFrame(
@@ -538,12 +642,16 @@ bool sendFrame(
   uint16_t size
 )
 {
-  if (size > MAX_PAYLOAD) {
+  if (
+    size > MAX_PAYLOAD
+  ) {
     return false;
   }
 
+
   uint8_t currentSequence =
     sequence++;
+
 
   uint16_t crc =
     calculateCRC(
@@ -560,57 +668,64 @@ bool sendFrame(
     attempt++
   ) {
 
-    Serial.print("Tentativa ");
-    Serial.print(attempt + 1);
-    Serial.print("/");
-    Serial.println(MAX_RETRIES);
+    Serial.print(
+      "Tentativa "
+    );
+
+    Serial.print(
+      attempt + 1
+    );
+
+    Serial.print(
+      "/"
+    );
+
+    Serial.println(
+      MAX_RETRIES
+    );
 
 
-    // --------------------------------------------------------
     // SOF
-    // --------------------------------------------------------
-
     serialLink.write(SOF);
 
 
-    // --------------------------------------------------------
     // TYPE
-    // --------------------------------------------------------
-
     serialLink.write(type);
 
 
-    // --------------------------------------------------------
-    // SEQUENCE
-    // --------------------------------------------------------
+    // SEQ
+    serialLink.write(
+      currentSequence
+    );
 
-    serialLink.write(currentSequence);
 
-
-    // --------------------------------------------------------
     // SIZE
-    // --------------------------------------------------------
+    serialLink.write(
+      size & 0xFF
+    );
 
-    serialLink.write(size & 0xFF);
-    serialLink.write((size >> 8) & 0xFF);
+    serialLink.write(
+      (size >> 8) & 0xFF
+    );
 
 
-    // --------------------------------------------------------
     // PAYLOAD
-    // --------------------------------------------------------
+    for (
+      uint16_t i = 0;
+      i < size;
+      i++
+    ) {
 
-    for (uint16_t i = 0; i < size; i++) {
-      serialLink.write(payload[i]);
+      serialLink.write(
+        payload[i]
+      );
     }
 
 
-    // --------------------------------------------------------
     // CRC
-    // --------------------------------------------------------
-
     uint16_t frameCrc = crc;
 
-    // Erro proposital apenas na primeira tentativa
+
     if (
       corruptNextFrame &&
       attempt == 0
@@ -625,16 +740,19 @@ bool sendFrame(
       );
     }
 
-    serialLink.write(frameCrc & 0xFF);
-    serialLink.write((frameCrc >> 8) & 0xFF);
+
+    serialLink.write(
+      frameCrc & 0xFF
+    );
+
+    serialLink.write(
+      (frameCrc >> 8) & 0xFF
+    );
 
     serialLink.flush();
 
 
-    // --------------------------------------------------------
-    // AGUARDA RESPOSTA
-    // --------------------------------------------------------
-
+    // ACK
     if (
       waitForResponse(
         currentSequence
@@ -647,6 +765,7 @@ bool sendFrame(
 
       return true;
     }
+
 
     Serial.println(
       "Falha na tentativa."
@@ -663,10 +782,12 @@ bool sendFrame(
 
 
 // ============================================================
-// FUNCOES EXIGIDAS PELO TRABALHO
+// FUNÇÕES EXIGIDAS
 // ============================================================
 
-bool sendByte(uint8_t value)
+bool sendByte(
+  uint8_t value
+)
 {
   return sendFrame(
     TYPE_BYTE,
@@ -676,7 +797,9 @@ bool sendByte(uint8_t value)
 }
 
 
-bool sendWord(uint16_t value)
+bool sendWord(
+  uint16_t value
+)
 {
   uint8_t payload[2];
 
@@ -694,9 +817,13 @@ bool sendWord(uint16_t value)
 }
 
 
-bool sendFloat(float value)
+bool sendFloat(
+  float value
+)
 {
-  uint8_t payload[sizeof(float)];
+  uint8_t payload[
+    sizeof(float)
+  ];
 
   memcpy(
     payload,
@@ -722,8 +849,10 @@ bool sendData(
     size == 0 ||
     size > MAX_PAYLOAD
   ) {
+
     return false;
   }
+
 
   return sendFrame(
     TYPE_DATA,
@@ -745,17 +874,37 @@ void setup()
 
   resetParser();
 
+
   Serial.println();
   Serial.println("==============================");
-  Serial.println(" ARDUINO A - PROTOCOLO SERIAL");
+  Serial.println(" ARDUINO B - PROTOCOLO SERIAL");
   Serial.println("==============================");
   Serial.println();
-  Serial.println("Comandos:");
-  Serial.println("1 - Enviar BYTE");
-  Serial.println("2 - Enviar WORD");
-  Serial.println("3 - Enviar FLOAT");
-  Serial.println("4 - Enviar DATA");
-  Serial.println("5 - Testar erro de CRC");
+
+  Serial.println(
+    "Comandos:"
+  );
+
+  Serial.println(
+    "1 - Enviar BYTE"
+  );
+
+  Serial.println(
+    "2 - Enviar WORD"
+  );
+
+  Serial.println(
+    "3 - Enviar FLOAT"
+  );
+
+  Serial.println(
+    "4 - Enviar DATA"
+  );
+
+  Serial.println(
+    "5 - Perder proximo ACK"
+  );
+
   Serial.println();
 }
 
@@ -769,7 +918,9 @@ void loop()
   updateProtocol();
 
 
-  if (Serial.available()) {
+  if (
+    Serial.available()
+  ) {
 
     char command =
       Serial.read();
@@ -779,11 +930,11 @@ void loop()
 
       case '1':
       {
-        uint8_t value = 42;
+        uint8_t value = 100;
 
         Serial.println();
         Serial.println(
-          "Enviando BYTE = 42"
+          "Enviando BYTE = 100"
         );
 
         sendByte(value);
@@ -794,11 +945,11 @@ void loop()
 
       case '2':
       {
-        uint16_t value = 1500;
+        uint16_t value = 2500;
 
         Serial.println();
         Serial.println(
-          "Enviando WORD = 1500"
+          "Enviando WORD = 2500"
         );
 
         sendWord(value);
@@ -809,11 +960,11 @@ void loop()
 
       case '3':
       {
-        float value = 3.14159;
+        float value = 9.87654;
 
         Serial.println();
         Serial.println(
-          "Enviando FLOAT = 3.14159"
+          "Enviando FLOAT = 9.87654"
         );
 
         sendFloat(value);
@@ -825,7 +976,7 @@ void loop()
       case '4':
       {
         const char message[] =
-          "Ola! Esta e uma DATA de tamanho variavel.";
+          "Mensagem enviada pelo Arduino B.";
 
         Serial.println();
         Serial.println(
@@ -842,20 +993,16 @@ void loop()
 
 
       case '5':
-      {
+
         Serial.println();
+
         Serial.println(
-          "Teste de erro de CRC."
+          "Proximo ACK sera perdido."
         );
 
-        corruptNextFrame = true;
-
-        uint8_t value = 99;
-
-        sendByte(value);
+        dropNextAck = true;
 
         break;
-      }
     }
   }
 }
