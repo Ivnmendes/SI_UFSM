@@ -1,0 +1,143 @@
+body {
+    font-family: Verdana, Tahoma, sans-serif;
+    background-color: #e6e6e6;
+    margin: 0;
+}
+.container {
+    max-width: 960px;
+    margin: auto;
+    background-color: #fff;
+    min-height: 100vh;
+}
+.form-title {
+    text-align: center;
+    padding: 50px;
+}
+.form-title h2 {
+    margin: 0;
+}
+form {
+    font-size: 15px;
+    margin-left: 10%;
+    margin-right: 10%;
+}
+label {
+    font-weight: bold;
+}
+fieldset {
+    font-weight: bold;
+    margin-bottom: 30px;
+    padding: 20px;
+}
+input,
+textarea,
+select {
+    width: 200px;
+    padding: 10px;
+    margin-left: 20px;
+    border: 1px solid #000;
+    border-radius: 5px;
+    margin: 10px;
+    box-sizing: border-box;
+}
+.campo-esquerda {
+    float: left;
+    width: 50%;
+}
+.campo-direita {
+    float: right;
+    width: 50%;
+}
+.campo {
+    display: flex;
+    align-items: center;
+    min-height: 57px;
+}
+.campo label:first-child {
+    width: 120px;
+    text-align: right;
+}
+.campo input:not([type="radio"]):not([type="color"]) {
+    flex-shrink: 0;
+}
+.limpar {
+    clear: both;
+}
+#nascimento {
+    width: 130px;
+}
+.campo-sexo {
+    justify-content: flex-start;
+}
+.campo-sexo > label:first-child {
+    width: 120px;
+    text-align: right;
+}
+.campo-sexo input[type="radio"] {
+    width: 20px;
+    margin: 10px 5px 10px 20px;
+}
+.campo-sexo .label-sexo {
+    width: auto;
+    margin: 0 10px 0 0;
+}
+#cor {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    border: none;
+}
+textarea {
+    width: 710px;
+    height: 150px;
+    resize: vertical;
+    display: block;
+}
+ul {
+    margin-left: 40px;
+    padding-left: 0;
+}
+li {
+    list-style: none;
+}
+li input[type="checkbox"] {
+    width: 20px;
+}
+.botao {
+    text-align: center;
+    margin-bottom: 30px;
+}
+.botao input[type="submit"],
+.botao input[type="reset"] {
+    width: 100px;
+    cursor: pointer;
+}
+.botao input[type="submit"]:hover,
+.botao input[type="reset"]:hover {
+    color: #fff;
+    background-color: #333;
+    font-weight: bold;
+}
+input::placeholder,
+textarea::placeholder {
+    color: #888;
+}
+.campo-endereco {
+    display: flex;
+    align-items: center;
+    min-height: 57px;
+}
+.campo-endereco label {
+    width: 140px;
+    text-align: right;
+}
+.campo-endereco input,
+.campo-endereco select {
+    flex-shrink: 0;
+}
+.botoes {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 30px;
+}
