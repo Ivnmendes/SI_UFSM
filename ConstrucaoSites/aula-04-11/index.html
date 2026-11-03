@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Passo Leve — Tênis Aero</title>
+  <link rel="stylesheet" href="estilo.css">
+  <script src="script.js" defer></script>
+</head>
+<body>
+
+  <header class="topo">
+    <h1 class="logo">Passo Leve</h1>
+    <button id="btn-tema" class="btn-tema">Modo escuro</button>
+  </header>
+
+  <main class="produto">
+
+    <section class="vitrine">
+      <img id="foto-principal" class="foto" src="img/tenis-azul.svg" alt="Tênis Aero">
+      <div class="miniaturas">
+        <img id="mini-azul" src="img/tenis-azul.svg" alt="Tênis Aero azul">
+        <img id="mini-verde" src="img/tenis-verde.svg" alt="Tênis Aero verde">
+        <img id="mini-coral" src="img/tenis-coral.svg" alt="Tênis Aero coral">
+      </div>
+    </section>
+
+    <section class="info">
+      <h2 id="nome-produto">Tênis Aero</h2>
+      <p class="preco">R$ 349,90</p>
+
+      <h3>Cor</h3>
+      <div class="opcoes">
+        <button id="btn-azul" class="cor cor-azul">Azul</button>
+        <button id="btn-verde" class="cor cor-verde">Verde</button>
+        <button id="btn-coral" class="cor cor-coral">Coral</button>
+      </div>
+      <p id="cor-escolhida" class="escolha">Cor escolhida: Azul</p>
+
+      <h3>Tamanho</h3>
+      <div class="opcoes">
+        <button id="tam-38" class="tamanho">38</button>
+        <button id="tam-40" class="tamanho">40</button>
+        <button id="tam-42" class="tamanho">42</button>
+      </div>
+      <p id="tamanho-escolhido" class="escolha">Tamanho escolhido: nenhum</p>
+
+      <div class="acoes">
+        <button id="btn-carrinho" class="btn-carrinho">Adicionar ao carrinho</button>
+        <button id="btn-favorito" class="btn-favorito">♥ Favoritar</button>
+      </div>
+
+      <button id="btn-detalhes" class="btn-detalhes">Ver detalhes</button>
+      <div id="detalhes" class="detalhes"></div>
+    </section>
+
+  </main>
+
+  <footer class="rodape">
+    <p>Passo Leve — loja fictícia criada para fins didáticos.</p>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,198 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Verdana, sans-serif;
+  background-color: #F4F4F0;
+  color: #1F2933;
+}
+
+/* ---------- Cabeçalho ---------- */
+.topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 40px;
+  background-color: #1F2933;
+}
+
+.logo {
+  margin: 0;
+  font-size: 22pt;
+  color: #FFFFFF;
+}
+
+.btn-tema {
+  padding: 8px 16px;
+  border: 2px solid #FFFFFF;
+  background-color: transparent;
+  color: #FFFFFF;
+  cursor: pointer;
+}
+
+/* ---------- Produto ---------- */
+.produto {
+  display: flex;
+  gap: 40px;
+  padding: 40px;
+}
+
+.vitrine {
+  flex: 1;
+}
+
+.foto {
+  width: 100%;
+  border: 3px solid #D9D6CC;
+  background-color: #FFFFFF;
+}
+
+.miniaturas {
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.miniaturas img {
+  width: 90px;
+  border: 2px solid #D9D6CC;
+  cursor: pointer;
+}
+
+.info {
+  flex: 1;
+}
+
+.info h2 {
+  margin: 0 0 8px 0;
+  font-size: 24pt;
+}
+
+.preco {
+  margin: 0 0 24px 0;
+  font-size: 20pt;
+  font-weight: bold;
+  color: #E4572E;
+}
+
+.info h3 {
+  margin: 0 0 8px 0;
+  font-size: 12pt;
+}
+
+.opcoes {
+  display: flex;
+  gap: 10px;
+}
+
+.cor,
+.tamanho {
+  padding: 8px 18px;
+  border: 2px solid #1F2933;
+  background-color: #FFFFFF;
+  font-family: Verdana, sans-serif;
+  cursor: pointer;
+}
+
+.cor-azul {
+  border-color: #2F6DB5;
+}
+
+.cor-verde {
+  border-color: #3E8E6A;
+}
+
+.cor-coral {
+  border-color: #E4572E;
+}
+
+.escolha {
+  margin: 8px 0 20px 0;
+  font-size: 10pt;
+  color: #52606D;
+}
+
+.acoes {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.btn-carrinho,
+.btn-favorito,
+.btn-detalhes {
+  padding: 12px 24px;
+  border: none;
+  font-family: Verdana, sans-serif;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-carrinho {
+  background-color: #1F2933;
+  color: #FFFFFF;
+}
+
+.btn-favorito {
+  background-color: #FFFFFF;
+  border: 2px solid #E4572E;
+  color: #E4572E;
+}
+
+.btn-detalhes {
+  background-color: transparent;
+  border: 2px solid #1F2933;
+  color: #1F2933;
+}
+
+.detalhes {
+  margin-top: 16px;
+  font-size: 10pt;
+  line-height: 1.6;
+}
+
+/* ---------- Rodapé ---------- */
+.rodape {
+  padding: 20px 40px;
+  background-color: #1F2933;
+  color: #FFFFFF;
+  font-size: 9pt;
+}
+
+.rodape p {
+  margin: 0;
+}
+
+/* =========================================================
+   Classes usadas pelo JavaScript
+   (já estão prontas: o script só precisa ligar e desligar)
+   ========================================================= */
+
+/* Botão de favorito marcado */
+.favorito {
+  background-color: #E4572E;
+  color: #FFFFFF;
+}
+
+/* Foto principal em destaque (mouse em cima) */
+.destaque {
+  border-color: #E4572E;
+  transform: scale(1.03);
+}
+
+/* Modo escuro (aplicada no body) */
+.escuro {
+  background-color: #1B1F24;
+  color: #E4E7EB;
+}
+
+.escuro .btn-detalhes {
+  border-color: #E4E7EB;
+  color: #E4E7EB;
+}
+
+.escuro .escolha {
+  color: #9AA5B1;
+}
