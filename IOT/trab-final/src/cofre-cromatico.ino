@@ -3,15 +3,44 @@
 #include <SPI.h>
 #include <math.h>
 #include <string.h>
+#include <WiFi.h>
+#include <PubSubClient.h>
 #include <SparkFun_APDS9960.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7789.h>
 
 // =====================================================
+// DEFINICOES DE REDE E MQTT (RFC 001 - Grupo 7)
+// =====================================================
+
+#define MODULO_ID   "7"
+#define MODULO_NUM  7
+
+const char* WIFI_SSID     = "iot2022";
+const char* WIFI_PASSWORD = "S3nhab0@";
+const char* MQTT_BROKER   = "192.168.2.100";
+const int   MQTT_PORT     = 1883;
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+// Variáveis de estado global sincronizadas pela Central
+char serialBomba[8]   = "-----";
+int  tempoRestante    = 0;
+bool jogoRodando      = false;
+bool minhaVez         = false;
+bool jaResolvido      = false;
+
+// Variáveis para detecção e armazenamento de dicas recebidas
+bool temDicaNova      = false;
+int  grupoOrigemDica  = 0;
+char conteudoDica[64] = "Aguardando dica...";
+
+// =====================================================
 // PINOS DA TTGO T-DISPLAY ORIGINAL (ESP32)
 // =====================================================
 
-constexpr uint8_t BTN_A_PIN = 0;   // Botao esquerdo (possui pull-up interno)
+constexpr uint8_t BTN_A_PIN = 0;   // Botao esquerdo (pull-up interno)
 constexpr uint8_t BTN_B_PIN = 35;  // Botao direito (pull-up fisico na placa)
 
 // Pinos internos do display ST7789 (135x240)
@@ -41,7 +70,7 @@ constexpr uint16_t C_BLUE     = 0x03FF;
 constexpr uint16_t C_ORANGE   = 0xFD20;
 
 // =====================================================
-// CONFIGURACOES DO JOGO, CALIBRACAO E REGRAS
+// CONFIGURACOES DO JOGO E REGRAS
 // =====================================================
 
 constexpr uint8_t CARD_COUNT = 4;
@@ -54,19 +83,8 @@ constexpr float MIN_CARD_SEPARATION = 0.06f;
 constexpr uint32_t DEBOUNCE_MS = 50;
 constexpr uint16_t SENSOR_SAMPLE_DELAY_MS = 80;
 
-// Lista de regras mockadas para testar sem MQTT (futuramente vira do topico MQTT)
-constexpr uint8_t MOCK_RULES_COUNT = 5;
-const char *MOCK_RULES[MOCK_RULES_COUNT] = {
-  "BLUE_ASCENDING",
-  "GREEN_DESCENDING",
-  "RED_ASCENDING",
-  "CLEAR_ASCENDING",
-  "58321" // Fallback numerico (senha % 24)
-};
-
-uint8_t currentRuleIndex = 0;
-String activeRuleCode = MOCK_RULES[0];
-String currentRuleHint = "";
+String activeRuleCode = "PADRAO";
+String currentRuleHint = "Aguardando dica...";
 
 const char *CARD_NAMES[CARD_COUNT] = {
   "Vermelho",
@@ -96,10 +114,6 @@ const uint16_t CARD_UI_COLORS[CARD_COUNT] = {
 SPIClass tftSPI(VSPI);
 Adafruit_ST7789 tft = Adafruit_ST7789(&tftSPI, TFT_CS_PIN, TFT_DC_PIN, TFT_RST_PIN);
 SparkFun_APDS9960 colorSensor;
-
-// =====================================================
-// ESTRUTURAS E VARIAVEIS DE ESTADO
-// =====================================================
 
 struct ColorSample {
   float r;
@@ -145,9 +159,107 @@ enum RuleChannel {
   CH_CLEAR_RAW
 };
 
-// =====================================================
-// LEITURA DE BOTOES COM DEBOUNCE
-// =====================================================
+// Declarações antecipadas
+void showRegisterScreen();
+void showEnterScreen();
+void showResultScreen(bool unlocked);
+void showStatusPopup(const char *title, const String &line1, const String &line2, uint16_t color);
+void applyActiveRule(const String &ruleStr);
+
+void callbackMqtt(char* topic, byte* payload, unsigned int length) {
+  char msg[length + 1];
+  memcpy(msg, payload, length);
+  msg[length] = '\0';
+
+  // Higieniza quebras de linha residuais
+  while (length > 0 && (msg[length - 1] == '\r' || msg[length - 1] == '\n' || msg[length - 1] == ' ')) {
+    msg[--length] = '\0';
+  }
+
+  Serial.printf("[MQTT] Mensagem em [%s]: %s\n", topic, msg);
+
+  // 1. Estado Global da Partida
+  if (strcmp(topic, "jogo/estado") == 0) {
+    if (strcmp(msg, "START") == 0) {
+      jogoRodando = true;
+      jaResolvido = false;
+      temDicaNova = false;
+      attempts = 0;
+      Serial.println("[JOGO] Partida iniciada pela Central!");
+    } 
+    else if (strcmp(msg, "RESET") == 0) {
+      jogoRodando = false;
+      minhaVez    = false;
+      jaResolvido = false;
+      temDicaNova = false;
+      Serial.println("[JOGO] Partida resetada.");
+    } 
+    else if (strcmp(msg, "VICTORY") == 0 || strcmp(msg, "DEFEAT") == 0) {
+      jogoRodando = false;
+      minhaVez    = false;
+      Serial.println("[JOGO] Partida encerrada.");
+    }
+  }
+
+  else if (strcmp(topic, "jogo/modulo/ativo") == 0) {
+    int idAtivo = atoi(msg);
+    minhaVez = (idAtivo == MODULO_NUM);
+    Serial.printf("[TURNO] Módulo ativo: %d (Minha vez? %s)\n", idAtivo, minhaVez ? "SIM" : "NAO");
+  }
+
+  else if (strcmp(topic, "jogo/serial") == 0) {
+    strncpy(serialBomba, msg, sizeof(serialBomba));
+    Serial.printf("[SERIAL] Bomba SN: %s\n", serialBomba);
+  }
+
+  else if (strcmp(topic, "jogo/tempo") == 0) {
+    tempoRestante = atoi(msg);
+  }
+
+  else {
+    int idOrigem = 0;
+    int pos = 0;
+    if (sscanf(topic, "jogo/modulo/" MODULO_ID "/dica/%d%n", &idOrigem, &pos) == 1 && topic[pos] == '\0') {
+      grupoOrigemDica = idOrigem;
+      strncpy(conteudoDica, msg, sizeof(conteudoDica) - 1);
+      conteudoDica[sizeof(conteudoDica) - 1] = '\0';
+      temDicaNova = true;
+      
+      Serial.printf("[DICA] Recebida do Grupo %d: %s\n", grupoOrigemDica, conteudoDica);
+
+      // Aplica a dica recebida imediatamente como regra de senha/sequencia!
+      activeRuleCode = String(conteudoDica);
+      if (registeredCount == CARD_COUNT) {
+        applyActiveRule(activeRuleCode);
+      }
+    }
+  }
+}
+
+void reconectarMQTT() {
+  while (!client.connected()) {
+    Serial.print("[MQTT] Conectando ao broker... ");
+    if (client.connect("Modulo_" MODULO_ID,
+                       "jogo/modulo/" MODULO_ID "/status",
+                       0,
+                       true,
+                       "OFFLINE")) {
+      
+      Serial.println("Conectado!");
+      client.publish("jogo/modulo/" MODULO_ID "/status", "ONLINE", true);
+
+      // Inscrições oficiais + escuta de dicas direcionadas/roteadas
+      client.subscribe("jogo/estado");
+      client.subscribe("jogo/serial");
+      client.subscribe("jogo/modulo/ativo");
+      client.subscribe("jogo/modulo/" MODULO_ID "/dica/+");
+      client.subscribe("jogo/tempo");
+    } else {
+      Serial.printf("Falha (rc=%d). Tentando em 1s...\n", client.state());
+      delay(1000);
+    }
+  }
+}
 
 bool checkButtonClick(ButtonTracker &btn, const char *debugName) {
   bool reading = digitalRead(btn.pin);
@@ -171,11 +283,6 @@ bool checkButtonClick(ButtonTracker &btn, const char *debugName) {
   return false;
 }
 
-// =====================================================
-// MOTOR DE REGRAS (CANAIS RGB/CLEAR + PERMUTACAO)
-// =====================================================
-
-// Extrai o valor de comparacao de um cartao calibrado conforme o canal da regra
 float getCardMetric(const ColorSample &card, RuleChannel channel) {
   float total = card.r + card.g + card.b;
   if (total <= 0.0f) total = 1.0f;
@@ -189,7 +296,6 @@ float getCardMetric(const ColorSample &card, RuleChannel channel) {
   return 0.0f;
 }
 
-// Ordena os IDs {1, 2, 3, 4} pelo canal escolhido (crescente ou decrescente)
 void buildSequenceByChannel(RuleChannel channel, bool ascending, uint8_t output[CARD_COUNT]) {
   uint8_t ids[CARD_COUNT] = {1, 2, 3, 4};
   float metrics[CARD_COUNT];
@@ -198,7 +304,6 @@ void buildSequenceByChannel(RuleChannel channel, bool ascending, uint8_t output[
     metrics[i] = getCardMetric(referenceCards[i], channel);
   }
 
-  // Insertion sort estavel (em caso de empate tecnico, mantem a ordem do ID)
   for (uint8_t i = 1; i < CARD_COUNT; i++) {
     uint8_t keyId = ids[i];
     float keyVal  = metrics[i];
@@ -245,7 +350,6 @@ void indexToPermutation(uint8_t index, uint8_t output[CARD_COUNT]) {
   }
 }
 
-// Interpreta a string da regra (vinda do array mock ou futuramente do JSON MQTT)
 void applyActiveRule(const String &ruleStr) {
   String r = ruleStr;
   r.trim();
@@ -253,57 +357,34 @@ void applyActiveRule(const String &ruleStr) {
 
   if (r == "BLUE_ASCENDING") {
     buildSequenceByChannel(CH_BLUE_NORM, true, targetSequence);
-    currentRuleHint = "Azul Crescente (menor->maior)";
+    currentRuleHint = "Azul Crescente";
   } else if (r == "BLUE_DESCENDING") {
     buildSequenceByChannel(CH_BLUE_NORM, false, targetSequence);
-    currentRuleHint = "Azul Decresc. (maior->menor)";
+    currentRuleHint = "Azul Decresc.";
   } else if (r == "GREEN_ASCENDING") {
     buildSequenceByChannel(CH_GREEN_NORM, true, targetSequence);
-    currentRuleHint = "Verde Crescente (menor->maior)";
+    currentRuleHint = "Verde Crescente";
   } else if (r == "GREEN_DESCENDING") {
     buildSequenceByChannel(CH_GREEN_NORM, false, targetSequence);
-    currentRuleHint = "Verde Decresc. (maior->menor)";
+    currentRuleHint = "Verde Decresc.";
   } else if (r == "RED_ASCENDING") {
     buildSequenceByChannel(CH_RED_NORM, true, targetSequence);
-    currentRuleHint = "Verm. Crescente (menor->maior)";
+    currentRuleHint = "Verm. Crescente";
   } else if (r == "RED_DESCENDING") {
     buildSequenceByChannel(CH_RED_NORM, false, targetSequence);
-    currentRuleHint = "Verm. Decresc. (maior->menor)";
+    currentRuleHint = "Verm. Decresc.";
   } else if (r == "CLEAR_ASCENDING") {
     buildSequenceByChannel(CH_CLEAR_RAW, true, targetSequence);
-    currentRuleHint = "Brilho Cresc. (escuro->claro)";
+    currentRuleHint = "Brilho Cresc.";
   } else if (r == "CLEAR_DESCENDING") {
     buildSequenceByChannel(CH_CLEAR_RAW, false, targetSequence);
-    currentRuleHint = "Brilho Decresc. (claro->escuro)";
+    currentRuleHint = "Brilho Decresc.";
   } else {
-    // Fallback: se receber digitos numericos, usa permutacao senha % 24
     int idx = passwordToPermutationIndex(r.c_str());
     if (idx < 0) idx = 0;
     indexToPermutation((uint8_t)idx, targetSequence);
-    currentRuleHint = "Senha " + r + " (mod24=" + String(idx) + ")";
+    currentRuleHint = "Senha " + r;
   }
-
-  // Imprime tabela completa de diagnostico no Serial para conferencia
-  Serial.println("\n========== REGRA ATIVA ==========");
-  Serial.println("Codigo recebido : " + r);
-  Serial.println("Dica exibida    : " + currentRuleHint);
-  Serial.println("Valores calibrados dos cartoes:");
-  for (uint8_t i = 0; i < CARD_COUNT; i++) {
-    float rn = getCardMetric(referenceCards[i], CH_RED_NORM);
-    float gn = getCardMetric(referenceCards[i], CH_GREEN_NORM);
-    float bn = getCardMetric(referenceCards[i], CH_BLUE_NORM);
-    Serial.printf(
-      "  ID %u (%-8s) -> Rn:%.3f | Gn:%.3f | Bn:%.3f | Clear:%u\n",
-      i + 1, CARD_NAMES[i], rn, gn, bn, referenceCards[i].clear
-    );
-  }
-  Serial.print("Sequencia alvo  : ");
-  for (uint8_t i = 0; i < CARD_COUNT; i++) {
-    uint8_t id = targetSequence[i];
-    Serial.printf("%u (%s)", id, CARD_NAMES[id - 1]);
-    if (i < CARD_COUNT - 1) Serial.print(" -> ");
-  }
-  Serial.println("\n=================================\n");
 }
 
 // =====================================================
@@ -314,26 +395,31 @@ void drawHeader(const char *subtitle, uint16_t color = C_CYAN) {
   tft.fillScreen(C_BLACK);
   tft.setTextWrap(false);
 
+  tft.setTextSize(1);
+  tft.setTextColor(C_YELLOW);
+  tft.setCursor(8, 4);
+  tft.printf("SN: %s | T: %ds", serialBomba, tempoRestante);
+
   tft.setTextSize(2);
   tft.setTextColor(color);
-  tft.setCursor(8, 5);
+  tft.setCursor(8, 16);
   tft.print("COFRE CROMATICO");
 
-  tft.drawFastHLine(8, 25, 224, C_DARKGREY);
+  tft.drawFastHLine(8, 36, 224, C_DARKGREY);
 
   if (subtitle && strlen(subtitle) > 0) {
     tft.setTextSize(1);
-    tft.setTextColor(C_WHITE);
-    tft.setCursor(8, 30);
+    tft.setTextColor(minhaVez ? C_GREEN : C_ORANGE);
+    tft.setCursor(8, 42);
     tft.print(subtitle);
   }
 }
 
 void drawCardSlots(const uint8_t slots[CARD_COUNT], uint8_t filledCount) {
   const int16_t startX = 8;
-  const int16_t startY = 68;
+  const int16_t startY = 74;
   const int16_t boxW   = 50;
-  const int16_t boxH   = 38;
+  const int16_t boxH   = 36;
   const int16_t gap    = 8;
 
   for (uint8_t i = 0; i < CARD_COUNT; i++) {
@@ -349,41 +435,39 @@ void drawCardSlots(const uint8_t slots[CARD_COUNT], uint8_t filledCount) {
 
       tft.setTextSize(2);
       tft.setTextColor(fg);
-      tft.setCursor(x + 14, startY + 11);
+      tft.setCursor(x + 14, startY + 10);
       tft.print(CARD_SHORT[id - 1]);
     } else {
       tft.drawRoundRect(x, startY, boxW, boxH, 5, C_DARKGREY);
       tft.setTextSize(1);
       tft.setTextColor(C_DARKGREY);
-      tft.setCursor(x + 22, startY + 15);
+      tft.setCursor(x + 22, startY + 14);
       tft.print(i + 1);
     }
   }
 }
 
-void showStatusPopup(
-  const char *title,
-  const String &line1,
-  const String &line2,
-  uint16_t color = C_CYAN
-) {
+void showStatusPopup(const char *title, const String &line1, const String &line2, uint16_t color = C_CYAN) {
   drawHeader(title, color);
-
   tft.setTextSize(1);
   tft.setTextColor(C_WHITE);
-  tft.setCursor(8, 54);
+  tft.setCursor(8, 62);
   tft.print(line1);
-
-  tft.setCursor(8, 74);
+  tft.setCursor(8, 82);
   tft.print(line2);
 }
 
 void showRegisterScreen() {
+  if (!minhaVez) {
+    showStatusPopup("AGUARDANDO TURNO...", "Outro grupo esta jogando.", "Aguarde sua vez...", C_ORANGE);
+    return;
+  }
+
   drawHeader("FASE 1: CALIBRAR CARTOES", C_CYAN);
 
   tft.setTextSize(1);
   tft.setTextColor(CARD_UI_COLORS[registeredCount]);
-  tft.setCursor(8, 48);
+  tft.setCursor(8, 56);
   tft.printf("Apresente %u/4: %s", registeredCount + 1, CARD_NAMES[registeredCount]);
 
   uint8_t regPreview[CARD_COUNT] = {1, 2, 3, 4};
@@ -391,49 +475,39 @@ void showRegisterScreen() {
 
   tft.setTextSize(1);
   tft.setTextColor(C_YELLOW);
-  tft.setCursor(8, 116);
-  tft.print("A: gravar cor");
-
+  tft.setCursor(8, 118);
+  tft.print("A: gravar");
   if (registeredCount > 0) {
-    tft.setTextColor(C_DARKGREY);
-    tft.setCursor(130, 116);
+    tft.setCursor(150, 118);
     tft.print("B: zerar");
   }
-
-  Serial.printf(
-    "[TELA] Aguardando cadastro %u/4 (%s). Aperte Botao A.\n",
-    registeredCount + 1,
-    CARD_NAMES[registeredCount]
-  );
 }
 
 void showEnterScreen() {
-  String sub = "REGRA: " + activeRuleCode;
+  if (!minhaVez) {
+    showStatusPopup("MODULO TRAVADO", "Nao e o seu turno atual.", "Aguarde a liberacao...", C_ORANGE);
+    return;
+  }
+
+  String sub = temDicaNova ? "Dica G" + String(grupoOrigemDica) + ": " + String(conteudoDica) : currentRuleHint;
   drawHeader(sub.c_str(), C_CYAN);
-
-  // Linha de dica traduzida logo acima dos cartoes
-  tft.setTextSize(1);
-  tft.setTextColor(C_YELLOW);
-  tft.setCursor(8, 46);
-  tft.print(currentRuleHint);
-
+  
   drawCardSlots(enteredSequence, enteredCount);
 
   tft.setTextSize(1);
   if (enteredCount < CARD_COUNT) {
     tft.setTextColor(C_GREEN);
-    tft.setCursor(8, 116);
+    tft.setCursor(8, 118);
     tft.printf("A: ler %uo cartao", enteredCount + 1);
-
     if (enteredCount > 0) {
       tft.setTextColor(C_ORANGE);
-      tft.setCursor(138, 116);
+      tft.setCursor(150, 118);
       tft.print("B: limpar");
     }
   } else {
     tft.setTextColor(C_GREEN);
-    tft.setCursor(8, 116);
-    tft.print("4/4 lidos! Aperte B p/ abrir!");
+    tft.setCursor(8, 118);
+    tft.print("Aperte B p/ validar!");
   }
 }
 
@@ -442,32 +516,23 @@ void showResultScreen(bool unlocked) {
     drawHeader("COFRE DESBLOQUEADO!", C_GREEN);
     tft.setTextSize(1);
     tft.setTextColor(C_WHITE);
-    tft.setCursor(8, 46);
-    tft.printf("Sucesso em %u tentativa(s)!", attempts);
+    tft.setCursor(8, 56);
+    tft.print("Desafio concluido com sucesso!");
   } else {
     drawHeader("SENHA INCORRETA!", C_RED);
     tft.setTextSize(1);
     tft.setTextColor(C_WHITE);
-    tft.setCursor(8, 46);
-    tft.printf("Tentativa #%u falhou!", attempts);
+    tft.setCursor(8, 56);
+    tft.printf("Strike! Tentativa #%u", attempts);
   }
 
-  // Exibe os 4 cartoes da tentativa recem-validada
   drawCardSlots(enteredSequence, CARD_COUNT);
 
   tft.setTextSize(1);
   tft.setTextColor(C_YELLOW);
-  tft.setCursor(8, 116);
-  if (unlocked) {
-    tft.print("A: prox. regra | B: recalibrar");
-  } else {
-    tft.print("A: tentar de novo | B: recalib");
-  }
+  tft.setCursor(8, 118);
+  tft.print(unlocked ? "Aguardando proximo..." : "A: tentar de novo");
 }
-
-// =====================================================
-// LEITURA E COMPARACAO DE CORES (APDS-9960)
-// =====================================================
 
 bool readColor(ColorSample &result) {
   if (!sensorReady) return false;
@@ -476,22 +541,11 @@ bool readColor(ColorSample &result) {
 
   for (uint8_t i = 0; i < SAMPLES_PER_READING; i++) {
     uint16_t r = 0, g = 0, b = 0, c = 0;
-
-    bool okR = colorSensor.readRedLight(r);
-    bool okG = colorSensor.readGreenLight(g);
-    bool okB = colorSensor.readBlueLight(b);
-    bool okC = colorSensor.readAmbientLight(c);
-
-    if (!okR || !okG || !okB || !okC) {
-      Serial.println("[ERRO] Falha ao ler canais do APDS-9960.");
+    if (!colorSensor.readRedLight(r) || !colorSensor.readGreenLight(g) ||
+        !colorSensor.readBlueLight(b) || !colorSensor.readAmbientLight(c)) {
       return false;
     }
-
-    sumR += r;
-    sumG += g;
-    sumB += b;
-    sumC += c;
-
+    sumR += r; sumG += g; sumB += b; sumC += c;
     delay(SENSOR_SAMPLE_DELAY_MS);
   }
 
@@ -500,34 +554,17 @@ bool readColor(ColorSample &result) {
   result.b = (float)sumB / SAMPLES_PER_READING;
   result.clear = (uint16_t)(sumC / SAMPLES_PER_READING);
 
-  float total = result.r + result.g + result.b;
-
-  if (total <= 0.0f) {
-    Serial.println("[AVISO] Leitura sem sinal RGB.");
-    return false;
-  }
-
-  Serial.printf(
-    "[SENSOR] Bruto -> R:%.1f G:%.1f B:%.1f C:%u | Norm -> Rn:%.3f Gn:%.3f Bn:%.3f\n",
-    result.r, result.g, result.b, result.clear,
-    result.r / total, result.g / total, result.b / total
-  );
-
-  return true;
+  return (result.r + result.g + result.b) > 0.0f;
 }
 
 float colorDistance(const ColorSample &a, const ColorSample &b) {
   float totalA = a.r + a.g + a.b;
   float totalB = b.r + b.g + b.b;
-
-  if (totalA <= 0.0f || totalB <= 0.0f) {
-    return 999.0f;
-  }
+  if (totalA <= 0.0f || totalB <= 0.0f) return 999.0f;
 
   float dr = (a.r / totalA) - (b.r / totalB);
   float dg = (a.g / totalA) - (b.g / totalB);
   float db = (a.b / totalA) - (b.b / totalB);
-
   return sqrtf(dr * dr + dg * dg + db * db);
 }
 
@@ -535,35 +572,16 @@ uint8_t identifyCard(const ColorSample &sample) {
   float bestDistance = 999.0f;
   uint8_t bestId = 0;
 
-  Serial.println("--- Comparando com referencias ---");
   for (uint8_t i = 0; i < registeredCount; i++) {
     float distance = colorDistance(sample, referenceCards[i]);
-    Serial.printf("  Dist para ID %u (%s): %.4f\n", i + 1, CARD_NAMES[i], distance);
-
     if (distance < bestDistance) {
       bestDistance = distance;
       bestId = i + 1;
     }
   }
 
-  Serial.printf(
-    "=> Melhor candidato: %u (%s) | Distancia: %.4f (Max: %.4f)\n",
-    bestId,
-    (bestId > 0) ? CARD_NAMES[bestId - 1] : "Nenhum",
-    bestDistance,
-    MAX_COLOR_DISTANCE
-  );
-
-  if (bestDistance <= MAX_COLOR_DISTANCE) {
-    return bestId;
-  }
-
-  return 0;
+  return (bestDistance <= MAX_COLOR_DISTANCE) ? bestId : 0;
 }
-
-// =====================================================
-// CONTROLE DO JOGO
-// =====================================================
 
 void resetEnteredSequence() {
   enteredCount = 0;
@@ -575,7 +593,6 @@ void resetCalibration() {
   attempts = 0;
   resetEnteredSequence();
   state = STATE_REGISTERING;
-  Serial.println("\n[SISTEMA] Calibracao reiniciada.");
   showRegisterScreen();
 }
 
@@ -587,34 +604,22 @@ bool sequenceContains(uint8_t id) {
 }
 
 void registerCurrentCard() {
-  if (registeredCount >= CARD_COUNT) return;
+  if (!minhaVez || registeredCount >= CARD_COUNT) return;
 
-  showStatusPopup(
-    "LENDO CARTAO...",
-    String("Gravando: ") + CARD_NAMES[registeredCount],
-    "Mantenha o cartao parado...",
-    CARD_UI_COLORS[registeredCount]
-  );
+  showStatusPopup("LENDO CARTAO...", String("Gravando: ") + CARD_NAMES[registeredCount], "Mantenha parado...", CARD_UI_COLORS[registeredCount]);
 
   ColorSample sample;
   if (!readColor(sample)) {
     showStatusPopup("LEITURA INVALIDA", "Verifique luz/distancia", "Tente novamente com A", C_RED);
-    delay(1200);
+    delay(1000);
     showRegisterScreen();
     return;
   }
 
   for (uint8_t i = 0; i < registeredCount; i++) {
-    float distance = colorDistance(sample, referenceCards[i]);
-    if (distance < MIN_CARD_SEPARATION) {
-      showStatusPopup(
-        "COR MUITO PARECIDA!",
-        String("Conflito com ") + CARD_NAMES[i],
-        "Dist: " + String(distance, 3),
-        C_ORANGE
-      );
-      Serial.printf("[REJEITADO] Conflito com %s (Dist=%.4f)\n", CARD_NAMES[i], distance);
-      delay(1500);
+    if (colorDistance(sample, referenceCards[i]) < MIN_CARD_SEPARATION) {
+      showStatusPopup("COR REJEITADA", "Muito parecida com outra", "Tente outra cor", C_ORANGE);
+      delay(1200);
       showRegisterScreen();
       return;
     }
@@ -623,19 +628,13 @@ void registerCurrentCard() {
   referenceCards[registeredCount] = sample;
   registeredCount++;
 
-  Serial.printf("[CADASTRO OK] Cartao %u (%s) salvo!\n", registeredCount, CARD_NAMES[registeredCount - 1]);
-
   if (registeredCount == CARD_COUNT) {
-    // Agora que os 4 cartoes tem valores RGB reais, calcula a sequencia pela regra ativa!
-    activeRuleCode = MOCK_RULES[currentRuleIndex];
     applyActiveRule(activeRuleCode);
-
     state = STATE_ENTERING;
-    attempts = 0;
     resetEnteredSequence();
 
-    showStatusPopup("CALIBRACAO OK!", "Regra: " + activeRuleCode, currentRuleHint, C_GREEN);
-    delay(1500);
+    showStatusPopup("CALIBRACAO OK!", "Aguardando insercao", currentRuleHint, C_GREEN);
+    delay(1200);
     showEnterScreen();
   } else {
     showRegisterScreen();
@@ -643,60 +642,50 @@ void registerCurrentCard() {
 }
 
 void captureSequenceCard() {
+  if (!minhaVez) return;
+
   if (enteredCount >= CARD_COUNT) {
-    showStatusPopup("4 CARTOES LIDOS!", "Aperte o BOTAO B (direita)", "para validar a sequencia!", C_YELLOW);
-    delay(1300);
+    showStatusPopup("4 CARTOES LIDOS!", "Aperte B p/ validar!", "", C_YELLOW);
+    delay(1000);
     showEnterScreen();
     return;
   }
 
-  showStatusPopup(
-    "IDENTIFICANDO...",
-    String("Lendo posicao ") + String(enteredCount + 1) + " de 4",
-    "Mantenha parado no sensor",
-    C_CYAN
-  );
+  showStatusPopup("IDENTIFICANDO...", String("Posicao ") + String(enteredCount + 1) + " de 4", "Mantenha parado", C_CYAN);
 
   ColorSample sample;
   if (!readColor(sample)) {
-    showStatusPopup("LEITURA INVALIDA", "Aproxime melhor o cartao", "e tente novamente", C_RED);
-    delay(1200);
+    showStatusPopup("LEITURA INVALIDA", "Aproxime melhor", "Tente novamente", C_RED);
+    delay(1000);
     showEnterScreen();
     return;
   }
 
   uint8_t id = identifyCard(sample);
-
   if (id == 0) {
-    showStatusPopup("NAO RECONHECIDO", "Cor fora da margem salva", "Confira a luz/distancia", C_ORANGE);
-    delay(1300);
+    showStatusPopup("NAO RECONHECIDO", "Cor fora do padrao", "Tente novamente", C_ORANGE);
+    delay(1000);
     showEnterScreen();
     return;
   }
 
   if (sequenceContains(id)) {
-    showStatusPopup(
-      "CARTAO REPETIDO!",
-      String(CARD_NAMES[id - 1]) + " ja foi inserido",
-      "Apresente outra cor",
-      C_ORANGE
-    );
-    delay(1200);
+    showStatusPopup("CARTAO REPETIDO", "Cada cor 1 unica vez", "Use outra cor", C_ORANGE);
+    delay(1000);
     showEnterScreen();
     return;
   }
 
   enteredSequence[enteredCount] = id;
   enteredCount++;
-
-  Serial.printf("[SEQUENCIA] Posicao %u -> ID %u (%s)\n", enteredCount, id, CARD_NAMES[id - 1]);
   showEnterScreen();
 }
 
 void validateSequence() {
+  if (!minhaVez) return;
+
   if (enteredCount < CARD_COUNT) {
     if (enteredCount > 0) {
-      Serial.println("[SEQUENCIA] Entrada parcial limpa pelo usuario.");
       resetEnteredSequence();
       showEnterScreen();
     }
@@ -705,7 +694,6 @@ void validateSequence() {
 
   attempts++;
   bool correct = true;
-
   for (uint8_t i = 0; i < CARD_COUNT; i++) {
     if (enteredSequence[i] != targetSequence[i]) {
       correct = false;
@@ -715,11 +703,14 @@ void validateSequence() {
 
   if (correct) {
     state = STATE_SUCCESS;
-    Serial.printf("\n[SUCESSO] Cofre DESBLOQUEADO (%s) em %u tentativa(s)!\n", activeRuleCode.c_str(), attempts);
+    jaResolvido = true;
+    client.publish("jogo/modulo/" MODULO_ID "/evento", "SOLVED");
+    Serial.println("[EVENTO] Publicado: SOLVED");
     showResultScreen(true);
   } else {
     state = STATE_ERROR;
-    Serial.printf("\n[FALHA] Combinacao incorreta na tentativa #%u.\n", attempts);
+    client.publish("jogo/modulo/" MODULO_ID "/evento", "ERROR");
+    Serial.println("[EVENTO] Publicado: ERROR (Strike)");
     showResultScreen(false);
     resetEnteredSequence();
   }
@@ -744,11 +735,19 @@ void setup() {
   tft.setSPISpeed(40000000);
   tft.setRotation(1);
 
-  tft.fillScreen(C_RED);   delay(100);
-  tft.fillScreen(C_GREEN); delay(100);
-  tft.fillScreen(C_BLUE);  delay(100);
+  tft.fillScreen(C_RED);   delay(80);
+  tft.fillScreen(C_GREEN); delay(80);
+  tft.fillScreen(C_BLUE);  delay(80);
 
-  showStatusPopup("INICIALIZANDO...", "Comunicando com APDS-9960", "I2C: SDA=21 | SCL=22", C_CYAN);
+  showStatusPopup("INICIALIZANDO...", "Conectando Wi-Fi & MQTT", "Protocolo RFC 001", C_CYAN);
+
+  WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+  }
+
+  client.setServer(MQTT_BROKER, MQTT_PORT);
+  client.setCallback(callbackMqtt);
 
   Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
   Wire.setClock(100000);
@@ -759,63 +758,54 @@ void setup() {
   }
 
   if (!sensorReady) {
-    Serial.println("[ERRO CRITICO] APDS-9960 nao encontrado!");
-    showStatusPopup("ERRO NO SENSOR", "Verifique SDA(21) e SCL(22)", "Reinicie a placa", C_RED);
+    showStatusPopup("ERRO NO SENSOR", "Verifique SDA/SCL", "Reinicie a placa", C_RED);
     while (true) delay(1000);
   }
 
-  Serial.println("APDS-9960 inicializado corretamente!");
   showRegisterScreen();
 }
 
 void loop() {
+  if (!client.connected()) {
+    reconectarMQTT();
+  }
+  client.loop();
+
+  static bool ultimoMinhaVez = false;
+  static GameState ultimoEstado = STATE_REGISTERING;
+  static bool ultimaDicaStatus = false;
+  
+  if (minhaVez != ultimoMinhaVez || state != ultimoEstado || temDicaNova != ultimaDicaStatus) {
+    ultimoMinhaVez = minhaVez;
+    ultimoEstado = state;
+    ultimaDicaStatus = temDicaNova;
+    
+    if (state == STATE_REGISTERING) showRegisterScreen();
+    else if (state == STATE_ENTERING) showEnterScreen();
+  }
+
   bool clickA = checkButtonClick(btnA, "BOTAO A");
   bool clickB = checkButtonClick(btnB, "BOTAO B");
 
-  if (clickA) {
-    switch (state) {
-      case STATE_REGISTERING:
-        registerCurrentCard();
-        break;
-
-      case STATE_ENTERING:
-        captureSequenceCard();
-        break;
-
-      case STATE_ERROR:
-        // Mantem a mesma regra e tenta de novo
-        state = STATE_ENTERING;
-        resetEnteredSequence();
-        showEnterScreen();
-        break;
-
-      case STATE_SUCCESS:
-        // Avanca para a proxima regra da lista sem precisar recalibrar!
-        currentRuleIndex = (currentRuleIndex + 1) % MOCK_RULES_COUNT;
-        activeRuleCode = MOCK_RULES[currentRuleIndex];
-        applyActiveRule(activeRuleCode);
-        attempts = 0;
-        resetEnteredSequence();
-        state = STATE_ENTERING;
-        showEnterScreen();
-        break;
+  if (clickA && jogoRodando && minhaVez && !jaResolvido) {
+    if (state == STATE_REGISTERING) {
+      registerCurrentCard();
+    } else if (state == STATE_ENTERING) {
+      captureSequenceCard();
+    } else if (state == STATE_ERROR) {
+      state = STATE_ENTERING;
+      resetEnteredSequence();
+      showEnterScreen();
     }
   }
 
-  if (clickB) {
-    switch (state) {
-      case STATE_REGISTERING:
-        if (registeredCount > 0) resetCalibration();
-        break;
-
-      case STATE_ENTERING:
-        validateSequence();
-        break;
-
-      case STATE_ERROR:
-      case STATE_SUCCESS:
-        resetCalibration();
-        break;
+  if (clickB && jogoRodando && minhaVez && !jaResolvido) {
+    if (state == STATE_REGISTERING) {
+      if (registeredCount > 0) resetCalibration();
+    } else if (state == STATE_ENTERING) {
+      validateSequence();
+    } else if (state == STATE_ERROR) {
+      resetCalibration();
     }
   }
 
